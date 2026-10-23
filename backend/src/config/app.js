@@ -1,0 +1,23 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import healthRouter from "../routes/health.js";
+import notFound from "../middleware/notFound.js";
+import errorHandler from "../middleware/errorHandler.js";
+
+const app = express();
+app.disable("x-powered-by");
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(helmet());
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
+app.use("/api/health", healthRouter);
+app.use("/api", notFound);
+app.use(errorHandler);
+
+export default app;
