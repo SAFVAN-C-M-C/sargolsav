@@ -58,9 +58,9 @@ test('TKT-03 real PostgreSQL integration', { timeout: 180000 }, async (t) => {
     try {
       await t.test('real runners serialize, apply all migrations once, and rerun cleanly', async () => {
         const results = await Promise.all([migrate(pool), migrate(pool)]);
-        assert.deepEqual(results.map((r) => r.length).sort(), [0, 6]);
+        assert.deepEqual(results.map((r) => r.length).sort(), [0, 7]);
         assert.deepEqual(await migrate(pool), []);
-        assert.equal((await pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count, '6');
+        assert.equal((await pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count, '7');
       });
 
       async function scenario(name, work) {

@@ -25,7 +25,8 @@ test('TKT-05D direct event deletion cannot cascade published results', { timeout
 test('TKT-05D client roles cannot bypass Firebase authorization, tamper with audit/history or reset identities', { timeout: 180000 }, async (t) => {
   await withSetupDatabase(t, async ({ db, pool }) => {
     const tables = ['competitions', 'competition_settings', 'units', 'madrasas', 'categories', 'events',
-      'candidates', 'event_results', 'result_entries', 'audit_logs', 'schema_migrations'];
+      'candidates', 'event_results', 'result_entries', 'audit_logs', 'schema_migrations',
+      'result_publications', 'result_corrections', 'correction_entries'];
     const protectedTables = (await pool.query(`SELECT relname,relrowsecurity FROM pg_class
       WHERE relnamespace=current_schema()::regnamespace AND relname=ANY($1::text[])`, [tables])).rows;
     assert.equal(protectedTables.length, tables.length);
@@ -45,7 +46,7 @@ test('TKT-05D client roles cannot bypass Firebase authorization, tamper with aud
       assert.ok(grants.every((row) => row.allowed === false));
       const { rows: sequences } = await pool.query(`SELECT relname,has_sequence_privilege($1,oid,'USAGE,SELECT,UPDATE') AS allowed
         FROM pg_class WHERE relnamespace=current_schema()::regnamespace AND relkind='S'`, [rolname]);
-      assert.equal(sequences.length, 9);
+      assert.equal(sequences.length, 12);
       assert.ok(sequences.every((row) => row.allowed === false));
       for (const sql of [
         "INSERT INTO competitions(code,name) VALUES ('attack','Attack')", "UPDATE competitions SET name='Attack'",
@@ -73,6 +74,6 @@ test('TKT-05D client roles cannot bypass Firebase authorization, tamper with aud
       await pool.query(securitySql);
     }
     assert.equal((await pool.query('SELECT code FROM competitions')).rows[0].code, 'local-demo');
-    assert.equal((await pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count, '6');
+    assert.equal((await pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count, '7');
   });
 });
