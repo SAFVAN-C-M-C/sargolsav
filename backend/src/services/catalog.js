@@ -121,8 +121,8 @@ export function createCatalogService(db = { transaction }) {
           const before = await find(query, params, true);
           const values = [...scopeValues(params), params[idKey]];
           if (nested) {
-            // event_results has ON DELETE CASCADE. Locking the event FOR UPDATE above
-            // excludes new FK references until this guard and deletion finish.
+            // Keep a clear API conflict as well as migration 0005's database FK guard.
+            // FOR UPDATE excludes new FK references until checking/deletion finish.
             const { rows } = await query('SELECT 1 FROM event_results WHERE competition_id = $1 AND event_id = $2 LIMIT 1',
               [params.competitionId, params.eventId]);
             if (rows.length) throw new CatalogError(409, 'Event is referenced by dependent records');
