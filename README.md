@@ -1,12 +1,21 @@
 # sargolsav
 
 Mobile-first Zonal Madrassa Cultural Competition Results application.
-This foundation covers TKT-01 through TKT-05D, including PostgreSQL utilities,
+This foundation covers TKT-01 through TKT-06D, including PostgreSQL utilities,
 versioned competition schema migrations, local development fixtures, and Firebase
-admin authentication and competition, unit/Madrassa, and category/event management APIs.
+admin authentication and competition, unit/Madrassa, category/event, candidate,
+private result drafts, review, publication, corrections, and public result APIs.
 
 See [Competition management API](backend/docs/competition-api.md) for authenticated
 endpoints, examples, lifecycle rules, shared points validation and error responses.
+The [Candidate API](backend/docs/candidate-api.md) documents external candidate codes,
+admin management, and reusable transaction-scoped candidate resolution.
+The [Result Draft API](backend/docs/result-draft-api.md) documents private winner entry,
+atomic draft replacement, status lists, and stale-edit protection.
+The [Result Lifecycle API](backend/docs/result-lifecycle-api.md) documents review,
+publication, isolated corrections, public visibility, and required migration 0007.
+The [Shared Position API](backend/docs/shared-position-api.md) documents explicit
+audited tie exceptions for drafts/corrections and required migration 0008.
 The [Unit and Madrassa API](backend/docs/unit-madrasa-api.md) documents nested CRUD,
 parent isolation, safe deletion and audit behavior.
 The [Category and Event API](backend/docs/category-event-api.md) documents configurable

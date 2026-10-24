@@ -79,13 +79,15 @@ test('TKT-05D complete setup through the production Express application', { time
     let finalTree;
     let otherTree;
     try {
-      await t.test('all six migrations and their ordering indexes are present and reruns apply nothing', async () => {
+      await t.test('all migrations and their ordering indexes are present and reruns apply nothing', async () => {
         assert.deepEqual(await migrate(pool), []);
         const history = (await pool.query('SELECT name FROM schema_migrations ORDER BY name')).rows.map((r) => r.name);
         assert.deepEqual(history, [
           '0001_competition_structure.sql', '0002_candidates_and_results.sql', '0003_audit_and_integrity.sql',
           '0004_category_event_order.sql', '0005_protect_event_results.sql',
           '0006_restrict_client_database_access.sql',
+          '0007_result_publications_and_corrections.sql',
+          '0008_correction_shared_positions.sql',
         ]);
         const indexes = (await pool.query("SELECT indexname,indexdef FROM pg_indexes WHERE schemaname=current_schema() AND indexname IN ('categories_display_order_idx','events_display_order_idx')")).rows;
         assert.equal(indexes.length, 2);
