@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src --ext js,json --exec \"node --env-file-if-exists=.env\" src/index.js",
     "start": "node --env-file-if-exists=.env src/index.js",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=2",
     "admin:claim": "node --env-file-if-exists=.env src/auth/provision-admin.js",
     "db:migrate": "node --env-file-if-exists=.env src/db/migrate-cli.js",
     "db:seed": "node --env-file-if-exists=.env src/db/seed-cli.js"
