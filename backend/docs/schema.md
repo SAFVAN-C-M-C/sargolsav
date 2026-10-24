@@ -44,6 +44,11 @@ unit, events per category). Text comparison is case-sensitive; no implicit
 trimming, case folding, numeric conversion, or code format policy is imposed.
 Names/codes cannot be blank. `madrasas` is the consistent database spelling.
 
+TKT-05B exposes [unit and Madrassa management APIs](unit-madrasa-api.md) using these
+unchanged relationships and uniqueness constraints. Parent IDs are fixed by the
+URL scope. Unit deletion is blocked by Madrassas/candidates, and Madrassa deletion
+is blocked by candidates; these APIs never cascade child records or results.
+
 Mutable tables have `created_at` / `updated_at` as `timestamptz`, initially `now()`.
 03-C update triggers set `updated_at` using `clock_timestamp()`; callers should
 omit these columns. Audit rows have only `created_at`. Competition status is
