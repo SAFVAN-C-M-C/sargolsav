@@ -61,6 +61,10 @@ logout, token refresh, and PostgreSQL behavior.
 the preview server does not proxy API requests. `npm start --workspace backend`
 runs the backend without watch mode. Deployment configuration is outside TKT-01.
 
+Run `npm audit` and `npm audit --omit=dev` when reviewing dependency updates.
+The [Firebase dependency security review](docs/dependency-security.md) explains
+the scoped gRPC security override, its compatibility limits, and when to remove it.
+
 ## Structure and scope
 
 - `frontend/src`: React and TypeScript entry point, public page, admin login,
