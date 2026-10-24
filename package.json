@@ -6,6 +6,11 @@
     "frontend",
     "backend"
   ],
+  "overrides": {
+    "@firebase/firestore@4.17.2": {
+      "@grpc/grpc-js": "1.14.6"
+    }
+  },
   "engines": {
     "node": "^22.13.0 || >=24.0.0",
     "npm": ">=10"
@@ -16,7 +21,7 @@
     "dev:backend": "npm run dev --workspace backend",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "npm run typecheck --workspace frontend",
-    "test": "npm test --workspace backend",
+    "test": "npm test --workspace backend && npm test --workspace frontend",
     "build": "npm run build --workspace frontend",
     "db:migrate": "npm run db:migrate --workspace backend",
     "db:seed": "npm run db:seed --workspace backend"
