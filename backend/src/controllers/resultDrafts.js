@@ -17,6 +17,7 @@ export function createResultDraftControllers(service) {
     }),
     get: handle(async (r, res) => res.json({ draft: await service.get(r.params) })),
     save: handle(async (r, res) => res.json({ draft: await service.save(r.params, r.body, r.auth.uid) })),
+    saveShared: handle(async (r, res) => res.json({ draft: await service.save(r.params, r.body, r.auth.uid, true) })),
     list: handle(async (r, res) => res.json({ results: await service.list(r.params, r.query) })),
   };
 }

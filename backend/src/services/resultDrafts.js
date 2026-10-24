@@ -1,9 +1,9 @@
 import { transaction } from '../db/index.js';
 import { resolveCandidate } from './candidates.js';
+import { ResultDraftError } from './resultErrors.js';
+import { authorizeSharedPositions, validateOverrideReason } from './sharedPositions.js';
 
-export class ResultDraftError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
-}
+export { ResultDraftError } from './resultErrors.js';
 export const resultVersion = "xmin::text || ':' || to_char(updated_at AT TIME ZONE 'UTC', 'YYYYMMDDHH24MISS.US')";
 const resultColumns = `id, competition_id, event_id, category_id, status, created_at, updated_at, ${resultVersion} AS version`;
 function invalid(message) { throw new ResultDraftError(400, message); }
@@ -22,8 +22,12 @@ function path(params, event = true) {
   if (event || params.categoryId !== undefined) id(params.categoryId, 'Category');
   if (event) id(params.eventId, 'Event');
 }
-function entriesPayload(body) {
-  object(body, ['version', 'entries']);
+function entriesPayload(body, shared = false) {
+  object(body, shared ? ['version', 'entries', 'shared_positions', 'reason'] : ['version', 'entries']);
+  if (shared) {
+    if (body.shared_positions !== true) invalid('shared_positions must explicitly be true');
+    validateOverrideReason(body.reason);
+  }
   if (typeof body.version !== 'string' || !/^[0-9]+:[0-9]{14}\.[0-9]{6}$/.test(body.version)) invalid('A valid draft version is required');
   if (!Array.isArray(body.entries)) invalid('entries must be an array');
   const codes = new Set();
@@ -34,7 +38,7 @@ function entriesPayload(body) {
     if (entry.madrasa_id !== undefined && entry.madrasa_id !== null) id(entry.madrasa_id, 'Madrassa');
     if (!Number.isInteger(entry.position) || entry.position < 1 || entry.position > 2147483647) invalid('Position must be a positive PostgreSQL integer');
     if (codes.has(entry.candidate_code)) invalid('Candidate cannot appear twice in an event');
-    if (positions.has(entry.position)) invalid('Shared positions are not allowed in ordinary draft entry');
+    if (!shared && positions.has(entry.position)) invalid('Shared positions are not allowed in ordinary draft entry');
     codes.add(entry.candidate_code); positions.add(entry.position);
   }
 }
@@ -64,7 +68,7 @@ async function entries(query, result) {
     c.candidate_code, c.name, c.unit_id, c.madrasa_id
     FROM result_entries r JOIN candidates c ON c.id = r.candidate_id
       AND c.competition_id = r.competition_id AND c.category_id = r.category_id
-    WHERE r.competition_id = $1 AND r.event_result_id = $2 ORDER BY r.position, r.id`, [result.competition_id, result.id])).rows;
+    WHERE r.competition_id = $1 AND r.event_result_id = $2 ORDER BY r.position, c.candidate_code COLLATE "C", c.id`, [result.competition_id, result.id])).rows;
 }
 async function snapshot(query, result) { return { ...result, entries: await entries(query, result) }; }
 async function audit(query, params, actor, action, before, after) {
@@ -96,8 +100,8 @@ export function createResultDraftService(db = { transaction }) {
         return snapshot(query, await find(query, params, false));
       });
     },
-    async save(params, body, actor) {
-      path(params); entriesPayload(body); text(actor, 'Actor');
+    async save(params, body, actor, shared = false) {
+      path(params); entriesPayload(body, shared); text(actor, 'Actor');
       return db.transaction(async (query) => {
         await parents(query, params, true, true);
         const current = await find(query, params, true);
@@ -107,19 +111,20 @@ export function createResultDraftService(db = { transaction }) {
           if (!settings || !Object.hasOwn(settings.position_points, String(entry.position))) invalid('Position is not configured for this competition');
         }
         const before = await snapshot(query, current);
-        if (before.entries.some((entry) => entry.override_audit_id !== null)) throw new ResultDraftError(409, 'Draft contains exceptional entries requiring a controlled workflow');
+        if (!shared && before.entries.some((entry) => entry.override_audit_id !== null)) throw new ResultDraftError(409, 'Draft contains shared positions; use explicit shared-position editing');
         const resolved = [];
         // Consistent candidate lock order avoids inverse-order deadlocks between different events.
         const ordered = [...body.entries].sort((a, b) => a.candidate_code < b.candidate_code ? -1 : a.candidate_code > b.candidate_code ? 1 : 0);
         for (const entry of ordered) {
           const { position, ...candidate } = entry;
           const row = await resolveCandidate(query, { ...candidate, competition_id: params.competitionId, category_id: params.categoryId }, actor);
-          resolved.push({ candidateId: row.id, position });
+          resolved.push({ candidate_id: row.id, position });
         }
+        const approved = shared ? await authorizeSharedPositions(query, params, current, resolved, before.entries, actor, body.reason) : resolved;
         await query('DELETE FROM result_entries WHERE competition_id = $1 AND event_result_id = $2', [params.competitionId, current.id]);
-        for (const entry of resolved) {
-          await query(`INSERT INTO result_entries (competition_id, event_result_id, event_id, category_id, candidate_id, position)
-            VALUES ($1,$2,$3,$4,$5,$6)`, [params.competitionId, current.id, params.eventId, params.categoryId, entry.candidateId, entry.position]);
+        for (const entry of approved) {
+          await query(`INSERT INTO result_entries (competition_id, event_result_id, event_id, category_id, candidate_id, position, override_audit_id)
+            VALUES ($1,$2,$3,$4,$5,$6,$7)`, [params.competitionId, current.id, params.eventId, params.categoryId, entry.candidate_id, entry.position, entry.override_audit_id ?? null]);
         }
         // The existing trigger advances updated_at; xmin and full timestamp precision form the version.
         const { rows: [updated] } = await query(`UPDATE event_results SET updated_at = clock_timestamp()

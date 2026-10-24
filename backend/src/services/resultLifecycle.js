@@ -1,6 +1,7 @@
 import { isDeepStrictEqual } from 'node:util';
 import { transaction } from '../db/index.js';
 import { resolveCandidate } from './candidates.js';
+import { authorizeSharedPositions, validateSharedPositions } from './sharedPositions.js';
 import { ResultDraftError, resultVersion, validateResultId as id, validateResultText as text,
   validateResultObject as object, validateResultPath as path, validateDraftEntries,
   lockResultParents as parents } from './resultDrafts.js';
@@ -25,7 +26,7 @@ async function record(query, params, correction = false, write = true) {
   return row;
 }
 async function winnerEntries(query, row, correction = false) {
-  const rows = (await query(`SELECT r.id, r.candidate_id, r.position, ${correction ? 'NULL::bigint' : 'r.override_audit_id'} AS override_audit_id,
+  const rows = (await query(`SELECT r.id, r.candidate_id, r.position, r.override_audit_id,
     c.candidate_code,c.name,c.unit_id,c.madrasa_id,u.name AS unit_name,m.name AS madrasa_name
     FROM ${correction ? 'correction_entries' : 'result_entries'} r
     JOIN candidates c ON c.id=r.candidate_id AND c.competition_id=r.competition_id AND c.category_id=r.category_id
@@ -33,7 +34,7 @@ async function winnerEntries(query, row, correction = false) {
     LEFT JOIN madrasas m ON m.id=c.madrasa_id AND m.unit_id=c.unit_id AND m.competition_id=c.competition_id
     WHERE r.competition_id=$1 AND r.${correction ? 'correction_id' : 'event_result_id'}=$2
     ORDER BY c.id,r.id FOR SHARE OF c`, [row.competition_id, row.id])).rows;
-  return rows.sort((a, b) => a.position - b.position || (BigInt(a.id) < BigInt(b.id) ? -1 : 1));
+  return rows.sort((a, b) => a.position - b.position || (a.candidate_code < b.candidate_code ? -1 : a.candidate_code > b.candidate_code ? 1 : 0) || (BigInt(a.candidate_id) < BigInt(b.candidate_id) ? -1 : 1));
 }
 async function view(query, row, correction = false) {
   const visible = { ...row };
@@ -47,26 +48,25 @@ async function validateReview(query, params, row, correction) {
   const entries = await winnerEntries(query, row, correction);
   const { rows: [settings] } = await query('SELECT position_points FROM competition_settings WHERE competition_id=$1 FOR SHARE', [params.competitionId]);
   const positions = Object.keys(settings?.position_points ?? {});
-  if (!positions.length || entries.length !== positions.length || positions.some((p) => !entries.some((e) => String(e.position) === p))) {
-    fail(400, 'Review and publication require one winner for every configured position');
+  if (!positions.length || positions.some((p) => !entries.some((e) => String(e.position) === p))) {
+    fail(400, 'Review and publication require a winner for every configured position');
   }
   const codes = new Set();
-  const used = new Set();
   for (const entry of entries) {
     text(entry.candidate_code, 'Candidate code'); text(entry.name, 'Name');
     id(entry.unit_id, 'Unit');
     if (entry.madrasa_id !== null) { id(entry.madrasa_id, 'Madrassa'); text(entry.madrasa_name, 'Madrassa name'); }
-    if (entry.override_audit_id !== null) fail(409, 'Exceptional shared-position results require a separate workflow');
-    if (!Number.isInteger(entry.position) || entry.position < 1 || used.has(entry.position) || codes.has(entry.candidate_code)) fail(400, 'Invalid or duplicate winner');
-    codes.add(entry.candidate_code); used.add(entry.position);
+    if (!Number.isInteger(entry.position) || entry.position < 1 || !Object.hasOwn(settings.position_points, String(entry.position)) || codes.has(entry.candidate_code)) fail(400, 'Invalid or duplicate winner');
+    codes.add(entry.candidate_code);
   }
+  const sharedApproval = await validateSharedPositions(query, params, row, entries, correction);
   const { rows: [event] } = await query(`SELECT e.name AS event_name,c.name AS category_name FROM events e
     JOIN categories c ON c.id=e.category_id AND c.competition_id=e.competition_id
     WHERE e.competition_id=$1 AND e.category_id=$2 AND e.id=$3`, [params.competitionId, params.categoryId, params.eventId]);
   const publication = { competition_id: params.competitionId, event_id: params.eventId, category_id: params.categoryId,
     ...event, winners: entries.map((e) => ({ candidate_code: e.candidate_code, name: e.name, position: e.position,
       unit: { id: e.unit_id, name: e.unit_name }, madrasa: e.madrasa_id === null ? null : { id: e.madrasa_id, name: e.madrasa_name } })) };
-  return { position_points: settings.position_points, publication };
+  return { position_points: settings.position_points, publication, ...(sharedApproval ? { shared_position_approval: sharedApproval } : {}) };
 }
 async function audit(query, params, actor, action, before, after, reason = 'Admin result lifecycle management') {
   await query(`INSERT INTO audit_logs(competition_id,event_id,actor_ref,action,reason,details) VALUES ($1,$2,$3,$4,$5,$6::jsonb)`,
@@ -81,8 +81,8 @@ async function insertPublication(query, live, projection) {
 async function replaceEntries(query, params, row, entries, correction) {
   await query(`DELETE FROM ${correction ? 'correction_entries' : 'result_entries'} WHERE competition_id=$1 AND ${correction ? 'correction_id' : 'event_result_id'}=$2`, [params.competitionId, row.id]);
   for (const entry of entries) {
-    await query(`INSERT INTO ${correction ? 'correction_entries' : 'result_entries'}(competition_id,${correction ? 'correction_id' : 'event_result_id'},event_id,category_id,candidate_id,position)
-      VALUES ($1,$2,$3,$4,$5,$6)`, [params.competitionId, row.id, params.eventId, params.categoryId, entry.candidate_id, entry.position]);
+    await query(`INSERT INTO ${correction ? 'correction_entries' : 'result_entries'}(competition_id,${correction ? 'correction_id' : 'event_result_id'},event_id,category_id,candidate_id,position,override_audit_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)`, [params.competitionId, row.id, params.eventId, params.categoryId, entry.candidate_id, entry.position, entry.override_audit_id ?? null]);
   }
 }
 
@@ -165,7 +165,6 @@ export function createResultLifecycleService(db = { transaction }) {
         const existing = await query("SELECT id FROM result_corrections WHERE competition_id=$1 AND event_result_id=$2 AND status IN ('draft','reviewed')", [params.competitionId, live.id]);
         if (existing.rows.length) fail(409, 'An active correction already exists');
         const source = await winnerEntries(query, live);
-        if (source.some((e) => e.override_audit_id !== null)) fail(409, 'Exceptional shared-position results require a separate workflow');
         const { rows: [row] } = await query(`INSERT INTO result_corrections(competition_id,event_result_id,event_id,category_id,base_publication_id,reason)
           VALUES ($1,$2,$3,$4,$5,$6) RETURNING *, ${resultVersion} AS version`, [params.competitionId, live.id, params.eventId, params.categoryId, base.id, body.reason]);
         await replaceEntries(query, params, row, source, true);
@@ -174,21 +173,23 @@ export function createResultLifecycleService(db = { transaction }) {
         return visible;
       });
     },
-    async saveCorrection(params, body, actor) {
-      validatePath(params, true); validateDraftEntries(body); text(actor, 'Actor');
+    async saveCorrection(params, body, actor, shared = false) {
+      validatePath(params, true); validateDraftEntries(body, shared); text(actor, 'Actor');
       return db.transaction(async (query) => {
         const { row } = await context(query, params, true);
         checkVersion(row, body.version); state(row, 'draft');
         const { rows: [settings] } = await query('SELECT position_points FROM competition_settings WHERE competition_id=$1 FOR SHARE', [params.competitionId]);
         for (const e of body.entries) if (!Object.hasOwn(settings?.position_points ?? {}, String(e.position))) fail(400, 'Position is not configured for this competition');
         const before = await view(query, row, true);
+        if (!shared && before.entries.some((entry) => entry.override_audit_id !== null)) fail(409, 'Correction contains shared positions; use explicit shared-position editing');
         const resolved = [];
         const ordered = [...body.entries].sort((a, b) => a.candidate_code < b.candidate_code ? -1 : a.candidate_code > b.candidate_code ? 1 : 0);
         for (const { position, ...candidate } of ordered) {
           const found = await resolveCandidate(query, { ...candidate, competition_id: params.competitionId, category_id: params.categoryId }, actor);
           resolved.push({ candidate_id: found.id, position });
         }
-        await replaceEntries(query, params, row, resolved, true);
+        const approved = shared ? await authorizeSharedPositions(query, params, row, resolved, before.entries, actor, body.reason, true) : resolved;
+        await replaceEntries(query, params, row, approved, true);
         const { rows: [updated] } = await query(`UPDATE result_corrections SET updated_at=clock_timestamp() WHERE competition_id=$1 AND id=$2
           RETURNING *, ${resultVersion} AS version`, [params.competitionId, row.id]);
         const visible = await view(query, updated, true);

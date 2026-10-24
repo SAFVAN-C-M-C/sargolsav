@@ -11,6 +11,7 @@ export function createResultDraftRouter(verifyIdToken, service = createResultDra
   router.post(draft, ...auth, controllers.initialize);
   router.get(draft, ...auth, controllers.get);
   router.put(draft, ...auth, controllers.save);
+  router.put(`${draft}/shared-positions`, ...auth, controllers.saveShared);
   router.get('/result-statuses', ...auth, controllers.list);
   router.get('/categories/:categoryId/result-statuses', ...auth, controllers.list);
   return router;

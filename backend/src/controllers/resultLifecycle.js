@@ -21,6 +21,7 @@ export function createResultLifecycleControllers(service) {
   return {
     get: item('get'), review: item('review'), returnToDraft: item('returnToDraft'), publish: item('publish'),
     startCorrection: item('startCorrection', true, 201), getCorrection: item('get', true), saveCorrection: item('saveCorrection', true),
+    saveSharedCorrection: resultHandler(async (r, res) => res.json({ correction: await service.saveCorrection(r.params, r.body, r.auth.uid, true) })),
     reviewCorrection: item('review', true), returnCorrection: item('returnToDraft', true), publishCorrection: item('publish', true),
   };
 }

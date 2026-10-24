@@ -16,6 +16,7 @@ export function createResultLifecycleRouter(verifyIdToken, service = createResul
   const correction = `${root}/corrections/:correctionId`;
   router.get(correction, ...auth, c.getCorrection);
   router.put(correction, ...auth, c.saveCorrection);
+  router.put(`${correction}/shared-positions`, ...auth, c.saveSharedCorrection);
   router.post(`${correction}/review`, ...auth, c.reviewCorrection);
   router.post(`${correction}/return-to-draft`, ...auth, c.returnCorrection);
   router.post(`${correction}/publish`, ...auth, c.publishCorrection);
