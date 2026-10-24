@@ -9,6 +9,7 @@
 | 03-C | `0003_audit_and_integrity.sql` | `test/schema.integration.test.js`, `test/seed.test.js`, integrity/service contract below |
 | 05-C | `0004_category_event_order.sql` | `docs/category-event-api.md`, `test/catalog.integration.test.js` |
 | 05-D | `0005_protect_event_results.sql`, `0006_restrict_client_database_access.sql` | `docs/TKT-05D-report.md`, `test/setup-*.integration.test.js` |
+| 06-C | `0007_result_publications_and_corrections.sql` | `docs/result-lifecycle-api.md`, `test/result-lifecycle*.test.js` |
 
 All migrations use the unchanged TKT-02 runner. These are new files, not replacements
 for applied migrations. Run `npm run db:migrate` explicitly; reruns skip history.
@@ -24,6 +25,9 @@ competitions 1 --- 0..1 competition_settings
 units       1 --- * candidates (* --- 0..1 madrasas, same unit)
 categories  1 --- * candidates
 events      1 --- 0..1 event_results 1 --- * result_entries * --- 1 candidates
+event_results 1 --- * result_publications (immutable public snapshots through API)
+event_results 1 --- * result_corrections 1 --- * correction_entries * --- 1 candidates
+result_publications 1 --- * result_corrections (base publication; one active correction/result)
 competitions 1 -- * audit_logs (* --- 0..1 events)
 audit_logs  1 --- * result_entries (optional shared-position override reference)
 ```
@@ -90,15 +94,14 @@ TKT-05A settles settings policy in the [competition API](competition-api.md):
 API writes require non-negative safe whole-number points, and settings edits must
 affect future published leaderboard calculations through current shared settings.
 The original database constraint still accepts numeric values; legacy/direct SQL
-data may need correction before scoring. No frozen snapshots or leaderboard
-implementation are introduced. Empty/missing position configuration remains
-allowed and requires explicit handling in future publication/scoring services.
-
-Material business decisions still needed before scoring/publication services:
-
-- Review invalidation, publication corrections, self-review and empty-result
-  publication policy need service decisions. Metadata supports review but does
-  not invent approval separation or lock results permanently.
+data may need correction before scoring. TKT-06C freezes public winner/display
+metadata in publication snapshots, without freezing awarded points or implementing
+leaderboards. Empty/missing position configuration allows draft preparation but
+blocks review/publication. Review requires one winner per configured position.
+Review fingerprints detect changed identity/display metadata and shared settings;
+the admin must return to draft and review again. The same verified admin may
+review and publish. Corrections use separate workspaces while the current
+publication remains visible. See [result lifecycle APIs](result-lifecycle-api.md).
 
 ## Enforced by PostgreSQL
 
@@ -120,12 +123,12 @@ Material business decisions still needed before scoring/publication services:
 - Indexes cover relationship lookups, deletion checks, published result selection,
   candidate results, ordinary position races, and audit timelines.
 
-## Transaction-level service validation (future work)
+## Transaction-level service validation
 
 Database clients are trusted migration/backend code; FK metadata does not
-authenticate an admin. Future services must mount the TKT-04A authentication and
-admin middleware, derive actor references from `request.auth.uid`, and atomically
-write override audit + entries. Audit details should identify the position,
+authenticate an admin. TKT-06A/B/C services use verified `request.auth.uid`, parent
+locks, parameterized queries and atomic audit writes. Future exceptional override
+services must also atomically write override audit + entries. Details should identify the position,
 affected candidate IDs and approval context. Check that approval applies to the actual edit, including
 when an entry references an existing approval; a FK alone cannot establish this.
 
@@ -136,7 +139,10 @@ with the competition/settings row for points validation and settings edits. Ever
 awarded position must be configured before publication. Validate completeness,
 eligibility and future participation limits there. Record changes in audit_logs;
 restrict application database privileges to prevent audit updates/deletes during
-normal operation. This ticket does not implement those services or grant scripts.
+normal operation. TKT-06C implements ordinary review/publication with complete
+position coverage, fingerprints, immutable public projections and isolated
+correction entries. TKT-06D override APIs remain future work; existing database
+constraints do not by themselves authorize those exceptions.
 
 ## Deletion
 

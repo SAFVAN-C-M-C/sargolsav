@@ -13,6 +13,13 @@ See ../docs/schema.md for the ERD, integrity
 boundaries, local seed, deletion behavior and real PostgreSQL tests. The TKT-02
 runner also creates schema_migrations, even when this folder has no SQL files.
 
+TKT-06C adds `0007_result_publications_and_corrections.sql`: review fingerprints,
+publication snapshots (including backfill of existing published results), and
+separate correction workspaces/entries. New tables retain 0006's server-only
+RLS/grant boundary. Apply it before using the lifecycle/public result APIs.
+Previously reviewed records require a fresh review; published records remain
+visible through backfilled snapshots. See `../docs/result-lifecycle-api.md`.
+
 Add immutable UTF-8 NNNN_lowercase_name.sql files with unique four-digit prefixes.
 They run in filename order, each in its own transaction, together with its history
 record. Do not put BEGIN/COMMIT/ROLLBACK, nontransactional statements (such as
