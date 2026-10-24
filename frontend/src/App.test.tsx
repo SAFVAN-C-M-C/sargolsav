@@ -66,12 +66,14 @@ function renderApp(path: string, client: AuthClient, fetcher = vi.fn().mockResol
   return { fetcher, user: userEvent.setup() };
 }
 
-test('public home is accessible without starting Firebase authentication', () => {
+test('public home is accessible without starting Firebase authentication', async () => {
   const client = new FakeAuthClient(undefined);
-  const { fetcher } = renderApp('/', client);
-  expect(screen.getByRole('heading', { name: 'sargolsav' })).toBeTruthy();
+  const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ competitions: [] }) });
+  renderApp('/', client, fetcher);
+  expect(await screen.findByRole('heading', { name: 'No active competition' })).toBeTruthy();
   expect(client.subscribeCalls).toBe(0);
-  expect(fetcher).not.toHaveBeenCalled();
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(fetcher).toHaveBeenCalledWith('/api/competitions', expect.objectContaining({ headers: { Accept: 'application/json' } }));
 });
 
 test('missing authentication redirects to login and preserves the protected destination', async () => {
