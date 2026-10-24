@@ -4,6 +4,7 @@ import { createResultDraftRouter } from '../src/routes/resultDrafts.js';
 import { createResultLifecycleRouter, createPublicResultRouter } from '../src/routes/resultLifecycle.js';
 import errorHandler from '../src/middleware/errorHandler.js';
 import notFound from '../src/middleware/notFound.js';
+import { createLeaderboardRouter } from '../src/routes/leaderboards.js';
 
 export async function serveResultLifecycle(services, work) {
   const verify = async (token) => {
@@ -17,6 +18,7 @@ export async function serveResultLifecycle(services, work) {
   app.use(base, createResultDraftRouter(verify, services.drafts));
   app.use(base, createResultLifecycleRouter(verify, services.lifecycle));
   app.use('/api/competitions/:competitionId', createPublicResultRouter(services.publicResults));
+  if (services.scoring) app.use('/api/competitions/:competitionId', createLeaderboardRouter(services.scoring));
   app.use(notFound); app.use(errorHandler);
   const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
