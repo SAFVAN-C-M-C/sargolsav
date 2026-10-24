@@ -1,8 +1,9 @@
 # Database migrations
 
-Run npm run db:migrate from the repository root. No business schema is included
-in TKT-02. The runner creates only schema_migrations, even when this folder has
-no SQL files.
+Run npm run db:migrate from the repository root. TKT-03 adds three business
+schema migrations (03-A, 03-B, 03-C). See ../docs/schema.md for the ERD, integrity
+boundaries, local seed, deletion behavior and real PostgreSQL tests. The TKT-02
+runner also creates schema_migrations, even when this folder has no SQL files.
 
 Add immutable UTF-8 NNNN_lowercase_name.sql files with unique four-digit prefixes.
 They run in filename order, each in its own transaction, together with its history

@@ -1,7 +1,8 @@
 # sargolsav
 
 Mobile-first Zonal Madrassa Cultural Competition Results application.
-This foundation covers TKT-01 and TKT-02, including PostgreSQL utilities and migrations.
+This foundation covers TKT-01 through TKT-03, including PostgreSQL utilities,
+versioned competition schema migrations and local development fixtures.
 
 ## Requirements and setup
 
@@ -68,7 +69,7 @@ runs the backend without watch mode. Deployment configuration is outside TKT-01.
 - `backend/src/index.js`: environment configuration and listener startup.
 
 The backend uses JavaScript ES modules. Production hosting, authentication,
-competition rules, business database schema, and the API data contract remain
+competition services and the API data contract remain
 unresolved and are intentionally deferred. PostgreSQL is optional for application-only development and mock-based tests. Frontend environment values are public; never put secrets in `VITE_*`
 variables. Local environment files are ignored; commit only sanitized examples.
 
@@ -91,7 +92,7 @@ npm run dev
 ```
 
 The migration command runs in the backend workspace and loads `backend/.env`.
-It creates only `schema_migrations`; this ticket includes no business tables.
+It applies the TKT-03 competition schema and records migration history.
 See `backend/migrations/README.md` for SQL naming, ordering, locking and retry rules.
 Migrations are explicit; the HTTP server never applies them on startup.
 
@@ -131,5 +132,8 @@ errors at HTTP boundaries. Never build SQL from untrusted strings.
 
 `npm test` includes mock-based database configuration, query, transaction,
 migration sequencing/cleanup and HTTP health checks; it requires no PostgreSQL
-server. These checks do not verify PostgreSQL SQL semantics or real advisory-lock
-concurrency. Real database validation must be reported separately.
+server. TKT-03 also includes real PostgreSQL integration tests which explicitly
+skip when no database is reachable (or fail if a test database is explicitly
+required). See [database schema documentation](backend/docs/schema.md) for the ERD,
+03-A/03-B/03-C review groups, service validation boundaries, test configuration,
+and the opt-in `npm run db:seed` local fixture.
