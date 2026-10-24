@@ -103,4 +103,6 @@ uncommitted settings and PostgreSQL error recovery. Existing unit tests remain.
 
 Set `TEST_DATABASE_URL` to a dedicated PostgreSQL database to require real database
 execution. The existing `TKT05B_REQUIRE_POSTGRES=1` flag also prevents skips.
-No frontend, overall unit rankings or live-update infrastructure is implemented.
+The [overall unit leaderboard](overall-leaderboard-api.md) reuses the same scoring
+relation and includes an integration review of all three calculations. No frontend
+or live-update infrastructure is implemented.

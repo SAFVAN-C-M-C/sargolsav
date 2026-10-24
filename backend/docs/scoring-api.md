@@ -78,6 +78,8 @@ per published winner. `$1` is competition and `$2` is category.
 `createScoringService(db).categoryUnits(params)` aggregates this relation in SQL.
 The [candidate leaderboard](candidate-leaderboard-api.md) reuses the same relation
 and position/count aggregation through `categoryCandidates(params)`.
+The [overall unit leaderboard](overall-leaderboard-api.md) uses the same scoring
+and unit standings statements with the category predicate omitted.
 
 The service uses the existing transaction and parent validation utilities. There
 are three fixed SQL calls: competition validation, scoped category validation and
@@ -116,8 +118,8 @@ ties, isolation, exact large sums, missing parents and rejected writes.
 Run from the backend directory using the existing database configuration;
 `TKT05B_REQUIRE_POSTGRES=1` prevents database-unavailable skips. The harness migrates
 and removes isolated schemas. Local HTTP/PostgreSQL network access is required.
-No environment files or credentials are changed. Overall rankings, frontend
-interfaces and live-update infrastructure remain outside scope.
+No environment files or credentials are changed. Frontend interfaces and
+live-update infrastructure remain outside scope.
 
 The backend `npm test` script limits file concurrency to two. Each PostgreSQL
 integration file opens its own connection pool; the unbounded runner exceeded
