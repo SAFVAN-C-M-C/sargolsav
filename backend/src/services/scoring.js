@@ -2,8 +2,9 @@ import { transaction } from '../db/index.js';
 import { validateResultId, validateResultObject, lockResultParents } from './resultDrafts.js';
 
 // Reusable SQL relation: one scored row per winner in the current publication.
-// $1 = competition, $2 = category. Keep points and publications in one MVCC snapshot.
-export const publishedScoresSql = `
+// $1 = competition, optional $2 = category. Scope is internal, never request SQL.
+function publishedScores(category = true) {
+  return `
   SELECT r.event_id,r.category_id,winner->>'candidate_code' AS candidate_code,
     (winner->'unit'->>'id')::bigint AS unit_id,
     winner->>'position' AS position,
@@ -17,12 +18,15 @@ export const publishedScoresSql = `
     ORDER BY p.id DESC LIMIT 1
   ) p ON true
   CROSS JOIN LATERAL jsonb_array_elements(p.snapshot->'winners') winner
-  WHERE r.competition_id=$1 AND r.category_id=$2 AND r.status='published'
+  WHERE r.competition_id=$1 ${category ? 'AND r.category_id=$2' : ''} AND r.status='published'
 `;
+}
+
+export const publishedScoresSql = publishedScores();
 
 // identity is an internal SQL column name, never request input.
-function totalsSql(identity) {
-  return `WITH scores AS (${publishedScoresSql}),
+function totalsSql(identity, category = true) {
+  return `WITH scores AS (${publishedScores(category)}),
     positions AS (
       SELECT ${identity},position,sum(points) AS points,count(*) AS wins
       FROM scores GROUP BY ${identity},position
@@ -33,32 +37,39 @@ function totalsSql(identity) {
     )`;
 }
 
+function unitStandingsSql(category = true) {
+  return `${totalsSql('unit_id', category)}, standings AS (
+    SELECT u.id AS unit_id,u.name AS unit_name,
+      COALESCE(t.total_points,0) AS total_points,
+      COALESCE(t.winning_entries,0) AS winning_entries,
+      COALESCE(t.position_wins,'{}'::jsonb) AS position_wins
+    FROM units u LEFT JOIN totals t ON t.unit_id=u.id
+    WHERE u.competition_id=$1
+  )
+  SELECT unit_id,unit_name,total_points::text,winning_entries::text,position_wins,
+    (rank() OVER (ORDER BY total_points DESC))::text AS rank
+  FROM standings ORDER BY standings.total_points DESC,lower(unit_name) COLLATE "C",unit_name COLLATE "C",unit_id`;
+}
+
 export function createScoringService(db = { transaction }) {
-  async function readCategory(params, filters, sql) {
+  async function readScope(params, filters, sql, category = true) {
     validateResultId(params.competitionId, 'Competition');
-    validateResultId(params.categoryId, 'Category');
+    if (category) validateResultId(params.categoryId, 'Category');
     validateResultObject(filters, []);
     return db.transaction(async (query) => {
-      await lockResultParents(query, params, false);
-      return (await query(sql, [params.competitionId, params.categoryId])).rows;
+      await lockResultParents(query, category ? params : { competitionId: params.competitionId }, false);
+      return (await query(sql, [params.competitionId, ...(category ? [params.categoryId] : [])])).rows;
     });
   }
   return {
     async categoryUnits(params, filters = {}) {
-      return readCategory(params, filters, `${totalsSql('unit_id')}, standings AS (
-            SELECT u.id AS unit_id,u.name AS unit_name,
-              COALESCE(t.total_points,0) AS total_points,
-              COALESCE(t.winning_entries,0) AS winning_entries,
-              COALESCE(t.position_wins,'{}'::jsonb) AS position_wins
-            FROM units u LEFT JOIN totals t ON t.unit_id=u.id
-            WHERE u.competition_id=$1
-          )
-          SELECT unit_id,unit_name,total_points::text,winning_entries::text,position_wins,
-            (rank() OVER (ORDER BY total_points DESC))::text AS rank
-          FROM standings ORDER BY standings.total_points DESC,lower(unit_name) COLLATE "C",unit_name COLLATE "C",unit_id`);
+      return readScope(params, filters, unitStandingsSql());
+    },
+    async overallUnits(params, filters = {}) {
+      return readScope(params, filters, unitStandingsSql(false), false);
     },
     async categoryCandidates(params, filters = {}) {
-      return readCategory(params, filters, `${totalsSql('candidate_code')}, standings AS (
+      return readScope(params, filters, `${totalsSql('candidate_code')}, standings AS (
         SELECT c.id AS candidate_id,c.candidate_code,c.name AS candidate_name,
           c.unit_id,u.name AS unit_name,c.madrasa_id,m.name AS madrasa_name,
           COALESCE(t.total_points,0) AS total_points,
