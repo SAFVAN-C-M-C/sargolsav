@@ -7,6 +7,8 @@
 | 03-A | `0001_competition_structure.sql` | This ERD and ownership documentation |
 | 03-B | `0002_candidates_and_results.sql` | `seeds/development.sql`, `src/db/seed*.js`, package scripts |
 | 03-C | `0003_audit_and_integrity.sql` | `test/schema.integration.test.js`, `test/seed.test.js`, integrity/service contract below |
+| 05-C | `0004_category_event_order.sql` | `docs/category-event-api.md`, `test/catalog.integration.test.js` |
+| 05-D | `0005_protect_event_results.sql`, `0006_restrict_client_database_access.sql` | `docs/TKT-05D-report.md`, `test/setup-*.integration.test.js` |
 
 All migrations use the unchanged TKT-02 runner. These are new files, not replacements
 for applied migrations. Run `npm run db:migrate` explicitly; reruns skip history.
@@ -44,6 +46,17 @@ unit, events per category). Text comparison is case-sensitive; no implicit
 trimming, case folding, numeric conversion, or code format policy is imposed.
 Names/codes cannot be blank. `madrasas` is the consistent database spelling.
 
+TKT-05C adds `sort_order integer NOT NULL DEFAULT 0 CHECK (sort_order >= 0)` to
+categories/events. Existing records receive zero. Their management lists use
+`sort_order ASC, id ASC`, with indexes matching competition/category scope. Names
+remain configurable and parent relationships remain immutable through the APIs.
+See the [category/event API contract](category-event-api.md).
+
+TKT-05B exposes [unit and Madrassa management APIs](unit-madrasa-api.md) using these
+unchanged relationships and uniqueness constraints. Parent IDs are fixed by the
+URL scope. Unit deletion is blocked by Madrassas/candidates, and Madrassa deletion
+is blocked by candidates; these APIs never cascade child records or results.
+
 Mutable tables have `created_at` / `updated_at` as `timestamptz`, initially `now()`.
 03-C update triggers set `updated_at` using `clock_timestamp()`; callers should
 omit these columns. Audit rows have only `created_at`. Competition status is
@@ -73,14 +86,16 @@ join candidates for unit grouping and look up each entry's position in the share
 settings. Sum **every** entry, including multiple winners from the same unit and
 authorized ties. Never deduplicate by unit or count draft/reviewed results.
 
+TKT-05A settles settings policy in the [competition API](competition-api.md):
+API writes require non-negative safe whole-number points, and settings edits must
+affect future published leaderboard calculations through current shared settings.
+The original database constraint still accepts numeric values; legacy/direct SQL
+data may need correction before scoring. No frozen snapshots or leaderboard
+implementation are introduced. Empty/missing position configuration remains
+allowed and requires explicit handling in future publication/scoring services.
+
 Material business decisions still needed before scoring/publication services:
 
-- Are negative/fractional points permitted? The schema accepts numeric values
-  without inventing a sign/range policy.
-- Do settings edits rescore published events, or should publication freeze a
-  version/snapshot? This schema stores current shared settings only. Direct
-  derivation uses current settings. Do not ship a settings-edit or scoring service
-  until this policy is settled; no snapshot policy is silently implemented.
 - Review invalidation, publication corrections, self-review and empty-result
   publication policy need service decisions. Metadata supports review but does
   not invent approval separation or lock results permanently.
@@ -129,11 +144,37 @@ Every competition-owned table directly references competitions with `ON DELETE
 CASCADE`. Deleting one competition removes all its owned data, including audit
 records and settings, in one atomic statement. References to units, madrasas,
 categories, candidates and override audits otherwise use `NO ACTION` (default),
-preventing dangling or silently reassigned records. Event deletion cascades its
-result set/entries but is blocked by event audit references; explicitly handle
-those before any standalone event purge. There are no foreign keys that cascade
+preventing dangling or silently reassigned records. Migration 0005 changes the
+event/result FK to `NO ACTION`: event deletion is blocked by any result set and
+by event audit references. There are no foreign keys that cascade
 from competition data into admin accounts. Integration tests include a populated
 competition purge with an override and a second competition retained.
+
+TKT-05C ordinary event DELETE additionally locks the event and rejects any result
+set (draft/reviewed/published) before deleting. Migration 0005 adds the database
+guard as well, so direct event DELETE cannot remove results either. Category
+DELETE relies on existing event/candidate FKs. Full-competition cleanup remains
+atomic: its direct competition FKs remove both events and results in the same
+statement, even with the event/result `NO ACTION` check.
+
+## Direct client database access (TKT-05D)
+
+Migration 0006 enables RLS without client policies on all ten business tables and
+`schema_migrations`, and revokes table privileges (including TRUNCATE) and owned
+identity sequence privileges from PUBLIC and existing Supabase `anon` and
+`authenticated` roles. It does not create or alter global roles or default
+privileges. Plain PostgreSQL installations without those roles are supported.
+Future application tables/sequences need equivalent protection in their own
+migrations. The Firebase backend must connect with a trusted table-owner or
+BYPASSRLS role; a new least-privilege backend role needs explicit server-only
+policies/grants before use. Privileged database credentials remain server-only.
+
+This closes the Supabase direct-write path around Firebase middleware and audit
+logging. It also prevents unapproved reads of unpublished competition data.
+Future public results require an intentionally limited read projection or policy;
+no public read policy is introduced here. Tests use session-local role changes
+only in temporary schemas and verify both grant denial and RLS behavior after
+accidental DML grants. Normal Supabase permissions are not changed by tests.
 
 Audit retention for a permanent competition purge is deliberately scoped to the
 competition. A future service should archive/export audit evidence first if a
