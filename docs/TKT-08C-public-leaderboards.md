@@ -1,5 +1,8 @@
 # TKT-08C — public leaderboard screens
 
+This records the 08C delivery. [TKT-08D](TKT-08D-public-live-updates.md) subsequently
+adds visibility-aware polling and background refresh feedback to these screens.
+
 ## Routes and navigation
 
 | Route | Screen |

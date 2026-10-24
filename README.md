@@ -1,5 +1,9 @@
 # sargolsav
 
+TKT-08D adds visibility-aware public polling, retained-data background retries,
+and focused mobile improvements. See the [live-update guide](docs/TKT-08D-public-live-updates.md)
+for timing, request optimization, error behavior and manual checks.
+
 TKT-08C adds public overall unit, category unit and category candidate leaderboard
 screens. See the [leaderboard frontend guide](docs/TKT-08C-public-leaderboards.md)
 for routes, exact-value handling, API integration and manual checks.
@@ -116,7 +120,7 @@ the scoped gRPC security override, its compatibility limits, and when to remove 
 The backend uses JavaScript ES modules. Competition, unit, Madrassa, category and
 event, candidate, result and leaderboard APIs are implemented. Public event-result
 screens are implemented in TKT-08B and leaderboard screens in TKT-08C. Automatic
-refresh remains deferred to TKT-08D. PostgreSQL is optional for application-only development and
+refresh is implemented with visibility-aware polling in TKT-08D. PostgreSQL is optional for application-only development and
 mock-based tests. Frontend
 environment values are public; never put secrets in `VITE_*` variables. Local
 environment files are ignored; commit only sanitized examples.
