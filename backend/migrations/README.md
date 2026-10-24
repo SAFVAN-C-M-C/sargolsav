@@ -1,7 +1,9 @@
 # Database migrations
 
 Run npm run db:migrate from the repository root. TKT-03 adds three business
-schema migrations (03-A, 03-B, 03-C). See ../docs/schema.md for the ERD, integrity
+schema migrations (03-A, 03-B, 03-C). TKT-05C adds `0004_category_event_order.sql`
+for category/event display ordering; apply it before using those APIs.
+See ../docs/schema.md for the ERD, integrity
 boundaries, local seed, deletion behavior and real PostgreSQL tests. The TKT-02
 runner also creates schema_migrations, even when this folder has no SQL files.
 

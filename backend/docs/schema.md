@@ -7,6 +7,7 @@
 | 03-A | `0001_competition_structure.sql` | This ERD and ownership documentation |
 | 03-B | `0002_candidates_and_results.sql` | `seeds/development.sql`, `src/db/seed*.js`, package scripts |
 | 03-C | `0003_audit_and_integrity.sql` | `test/schema.integration.test.js`, `test/seed.test.js`, integrity/service contract below |
+| 05-C | `0004_category_event_order.sql` | `docs/category-event-api.md`, `test/catalog.integration.test.js` |
 
 All migrations use the unchanged TKT-02 runner. These are new files, not replacements
 for applied migrations. Run `npm run db:migrate` explicitly; reruns skip history.
@@ -43,6 +44,12 @@ names are unique per owning scope (units/categories per competition, madrasas pe
 unit, events per category). Text comparison is case-sensitive; no implicit
 trimming, case folding, numeric conversion, or code format policy is imposed.
 Names/codes cannot be blank. `madrasas` is the consistent database spelling.
+
+TKT-05C adds `sort_order integer NOT NULL DEFAULT 0 CHECK (sort_order >= 0)` to
+categories/events. Existing records receive zero. Their management lists use
+`sort_order ASC, id ASC`, with indexes matching competition/category scope. Names
+remain configurable and parent relationships remain immutable through the APIs.
+See the [category/event API contract](category-event-api.md).
 
 TKT-05B exposes [unit and Madrassa management APIs](unit-madrasa-api.md) using these
 unchanged relationships and uniqueness constraints. Parent IDs are fixed by the
@@ -141,6 +148,11 @@ result set/entries but is blocked by event audit references; explicitly handle
 those before any standalone event purge. There are no foreign keys that cascade
 from competition data into admin accounts. Integration tests include a populated
 competition purge with an override and a second competition retained.
+
+TKT-05C ordinary event DELETE additionally locks the event and rejects any result
+set (draft/reviewed/published) before deleting. It never invokes the underlying
+result cascade for referenced events. Category DELETE relies on existing event
+and candidate foreign keys. Existing direct SQL/reset policies remain unchanged.
 
 Audit retention for a permanent competition purge is deliberately scoped to the
 competition. A future service should archive/export audit evidence first if a

@@ -1,14 +1,16 @@
 # sargolsav
 
 Mobile-first Zonal Madrassa Cultural Competition Results application.
-This foundation covers TKT-01 through TKT-05B, including PostgreSQL utilities,
+This foundation covers TKT-01 through TKT-05C, including PostgreSQL utilities,
 versioned competition schema migrations, local development fixtures, and Firebase
-admin authentication, competition management, and unit/Madrassa management APIs.
+admin authentication and competition, unit/Madrassa, and category/event management APIs.
 
 See [Competition management API](backend/docs/competition-api.md) for authenticated
 endpoints, examples, lifecycle rules, shared points validation and error responses.
 The [Unit and Madrassa API](backend/docs/unit-madrasa-api.md) documents nested CRUD,
 parent isolation, safe deletion and audit behavior.
+The [Category and Event API](backend/docs/category-event-api.md) documents configurable
+display order and protected deletion. Run `npm run db:migrate` before using it.
 
 ## Requirements and setup
 
@@ -77,13 +79,13 @@ the scoped gRPC security override, its compatibility limits, and when to remove 
 - `backend/src/routes`: HTTP route registration.
 - `backend/src/controllers`: HTTP request/response handling.
 - `backend/src/middleware`: API 404 catcher and error handling.
-- `backend/src/services`: health status and transactional competition/unit/Madrassa operations.
+- `backend/src/services`: health status and transactional competition configuration operations.
 - `backend/src/db`: shared PostgreSQL pool, query/transaction utilities, and migration runner.
 - `backend/src/config/app.js`: Express app, independently importable for tests.
 - `backend/src/index.js`: environment configuration and listener startup.
 
-The backend uses JavaScript ES modules. Competition, unit and Madrassa management
-APIs are implemented; categories, events, candidates, results and leaderboard APIs
+The backend uses JavaScript ES modules. Competition, unit, Madrassa, category and
+event management APIs are implemented; candidate, result and leaderboard APIs
 remain deferred. PostgreSQL is optional for application-only development and
 mock-based tests. Frontend
 environment values are public; never put secrets in `VITE_*` variables. Local
