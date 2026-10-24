@@ -1,7 +1,7 @@
 # sargolsav
 
 Mobile-first Zonal Madrassa Cultural Competition Results application.
-This foundation covers TKT-01 through TKT-05C, including PostgreSQL utilities,
+This foundation covers TKT-01 through TKT-05D, including PostgreSQL utilities,
 versioned competition schema migrations, local development fixtures, and Firebase
 admin authentication and competition, unit/Madrassa, and category/event management APIs.
 
@@ -11,6 +11,9 @@ The [Unit and Madrassa API](backend/docs/unit-madrasa-api.md) documents nested C
 parent isolation, safe deletion and audit behavior.
 The [Category and Event API](backend/docs/category-event-api.md) documents configurable
 display order and protected deletion. Run `npm run db:migrate` before using it.
+The [setup integration review](backend/docs/TKT-05D-report.md) verifies the full
+workflow and documents migrations 0005/0006 for database deletion and Supabase
+client-access safeguards. These require explicit migration before rollout.
 
 ## Requirements and setup
 

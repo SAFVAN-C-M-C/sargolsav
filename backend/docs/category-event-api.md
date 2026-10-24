@@ -9,7 +9,9 @@ Before using these APIs, run `npm run db:migrate` explicitly. Migration
 `0004_category_event_order.sql` adds `sort_order integer NOT NULL DEFAULT 0`
 with a non-negative check to categories and events, plus scoped ordering indexes.
 Existing records receive zero; names, IDs and relationships are preserved. Previous
-migrations remain unchanged. The server never migrates the database on startup.
+migrations remain unchanged. TKT-05D adds migration 0005 to prevent event/result
+cascades and 0006 to restrict direct Supabase client access. The server never
+migrates the database on startup.
 
 ## Endpoints
 
@@ -92,10 +94,10 @@ management APIs.
 Unused categories/events can be deleted. Category deletion is blocked by existing
 events or candidates through the existing `NO ACTION` foreign keys. Event deletion
 is explicitly blocked by **any** `event_results` row, including empty draft,
-reviewed and published result sets. This API guard is necessary because the
-original event-to-result FK has `ON DELETE CASCADE`; that existing schema policy
-is unchanged. An event `FOR UPDATE` lock is held before checking dependencies
-and until commit, excluding concurrent FK references that could bypass the guard.
+reviewed and published result sets. TKT-05D migration 0005 also replaces the
+original event-to-result cascade with `NO ACTION`, protecting direct SQL event
+deletion. The API guard remains for a clear conflict response. An event
+`FOR UPDATE` lock is held until commit, excluding concurrent FK references.
 Existing event-specific audit references also block deletion through their FK.
 No candidates, result sets, entries or audit evidence are detached or cascaded by
 these APIs. Repeated DELETE after successful removal returns 404.
@@ -155,5 +157,8 @@ PostgreSQL produces an explicit skip. Existing suites keep their own flags.
 Run `npm run lint`, `npm run typecheck`, `npm run build`, and `npm test` at the
 repository root. Lists remain unpaginated, moves between parents are unsupported,
 and sort order is edited per record without a bulk reorder endpoint. Trusted
-direct SQL event deletion still follows the original cascade policy; use these
-guarded APIs for ordinary management. See [verification report](TKT-05C-report.md).
+direct SQL competition deletion still follows the intentional full-competition
+cleanup policy. Migration 0006 enables RLS and revokes client-role table/sequence
+access; ordinary management uses the Firebase-authorized backend. See the
+[TKT-05D integration review](TKT-05D-report.md) for current security and rollout
+findings, and the [original TKT-05C verification report](TKT-05C-report.md).

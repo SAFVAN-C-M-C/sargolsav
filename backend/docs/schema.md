@@ -8,6 +8,7 @@
 | 03-B | `0002_candidates_and_results.sql` | `seeds/development.sql`, `src/db/seed*.js`, package scripts |
 | 03-C | `0003_audit_and_integrity.sql` | `test/schema.integration.test.js`, `test/seed.test.js`, integrity/service contract below |
 | 05-C | `0004_category_event_order.sql` | `docs/category-event-api.md`, `test/catalog.integration.test.js` |
+| 05-D | `0005_protect_event_results.sql`, `0006_restrict_client_database_access.sql` | `docs/TKT-05D-report.md`, `test/setup-*.integration.test.js` |
 
 All migrations use the unchanged TKT-02 runner. These are new files, not replacements
 for applied migrations. Run `npm run db:migrate` explicitly; reruns skip history.
@@ -143,16 +144,37 @@ Every competition-owned table directly references competitions with `ON DELETE
 CASCADE`. Deleting one competition removes all its owned data, including audit
 records and settings, in one atomic statement. References to units, madrasas,
 categories, candidates and override audits otherwise use `NO ACTION` (default),
-preventing dangling or silently reassigned records. Event deletion cascades its
-result set/entries but is blocked by event audit references; explicitly handle
-those before any standalone event purge. There are no foreign keys that cascade
+preventing dangling or silently reassigned records. Migration 0005 changes the
+event/result FK to `NO ACTION`: event deletion is blocked by any result set and
+by event audit references. There are no foreign keys that cascade
 from competition data into admin accounts. Integration tests include a populated
 competition purge with an override and a second competition retained.
 
 TKT-05C ordinary event DELETE additionally locks the event and rejects any result
-set (draft/reviewed/published) before deleting. It never invokes the underlying
-result cascade for referenced events. Category DELETE relies on existing event
-and candidate foreign keys. Existing direct SQL/reset policies remain unchanged.
+set (draft/reviewed/published) before deleting. Migration 0005 adds the database
+guard as well, so direct event DELETE cannot remove results either. Category
+DELETE relies on existing event/candidate FKs. Full-competition cleanup remains
+atomic: its direct competition FKs remove both events and results in the same
+statement, even with the event/result `NO ACTION` check.
+
+## Direct client database access (TKT-05D)
+
+Migration 0006 enables RLS without client policies on all ten business tables and
+`schema_migrations`, and revokes table privileges (including TRUNCATE) and owned
+identity sequence privileges from PUBLIC and existing Supabase `anon` and
+`authenticated` roles. It does not create or alter global roles or default
+privileges. Plain PostgreSQL installations without those roles are supported.
+Future application tables/sequences need equivalent protection in their own
+migrations. The Firebase backend must connect with a trusted table-owner or
+BYPASSRLS role; a new least-privilege backend role needs explicit server-only
+policies/grants before use. Privileged database credentials remain server-only.
+
+This closes the Supabase direct-write path around Firebase middleware and audit
+logging. It also prevents unapproved reads of unpublished competition data.
+Future public results require an intentionally limited read projection or policy;
+no public read policy is introduced here. Tests use session-local role changes
+only in temporary schemas and verify both grant denial and RLS behavior after
+accidental DML grants. Normal Supabase permissions are not changed by tests.
 
 Audit retention for a permanent competition purge is deliberately scoped to the
 competition. A future service should archive/export audit evidence first if a
