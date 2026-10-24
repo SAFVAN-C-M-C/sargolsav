@@ -10,6 +10,7 @@
 | 05-C | `0004_category_event_order.sql` | `docs/category-event-api.md`, `test/catalog.integration.test.js` |
 | 05-D | `0005_protect_event_results.sql`, `0006_restrict_client_database_access.sql` | `docs/TKT-05D-report.md`, `test/setup-*.integration.test.js` |
 | 06-C | `0007_result_publications_and_corrections.sql` | `docs/result-lifecycle-api.md`, `test/result-lifecycle*.test.js` |
+| 06-D | `0008_correction_shared_positions.sql` | `docs/shared-position-api.md`, `test/shared-positions*.test.js` |
 
 All migrations use the unchanged TKT-02 runner. These are new files, not replacements
 for applied migrations. Run `npm run db:migrate` explicitly; reruns skip history.
@@ -30,6 +31,7 @@ event_results 1 --- * result_corrections 1 --- * correction_entries * --- 1 cand
 result_publications 1 --- * result_corrections (base publication; one active correction/result)
 competitions 1 -- * audit_logs (* --- 0..1 events)
 audit_logs  1 --- * result_entries (optional shared-position override reference)
+audit_logs  1 --- * correction_entries (optional shared-position override reference)
 ```
 
 Every business row carries `competition_id`; composite foreign keys bind all
@@ -97,7 +99,8 @@ The original database constraint still accepts numeric values; legacy/direct SQL
 data may need correction before scoring. TKT-06C freezes public winner/display
 metadata in publication snapshots, without freezing awarded points or implementing
 leaderboards. Empty/missing position configuration allows draft preparation but
-blocks review/publication. Review requires one winner per configured position.
+blocks review/publication. Review requires at least one winner per configured position;
+additional tied winners require explicit TKT-06D approval matching their exact group.
 Review fingerprints detect changed identity/display metadata and shared settings;
 the admin must return to draft and review again. The same verified admin may
 review and publish. Corrections use separate workspaces while the current
@@ -127,8 +130,8 @@ publication remains visible. See [result lifecycle APIs](result-lifecycle-api.md
 
 Database clients are trusted migration/backend code; FK metadata does not
 authenticate an admin. TKT-06A/B/C services use verified `request.auth.uid`, parent
-locks, parameterized queries and atomic audit writes. Future exceptional override
-services must also atomically write override audit + entries. Details should identify the position,
+locks, parameterized queries and atomic audit writes. TKT-06D exceptional override
+saves atomically write override audit + entries. Details identify the position,
 affected candidate IDs and approval context. Check that approval applies to the actual edit, including
 when an entry references an existing approval; a FK alone cannot establish this.
 
@@ -141,8 +144,9 @@ eligibility and future participation limits there. Record changes in audit_logs;
 restrict application database privileges to prevent audit updates/deletes during
 normal operation. TKT-06C implements ordinary review/publication with complete
 position coverage, fingerprints, immutable public projections and isolated
-correction entries. TKT-06D override APIs remain future work; existing database
-constraints do not by themselves authorize those exceptions.
+correction entries. TKT-06D implements explicit reasoned override saves for both
+live drafts and correction drafts, revalidating exact tied-group approval during
+review/publication. Existing database FKs alone do not authorize an unrelated edit.
 
 ## Deletion
 

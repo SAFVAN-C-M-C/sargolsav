@@ -121,7 +121,8 @@ New records start in `draft`. Every save retains `draft`, null review/publish
 fields, and no leaderboard contribution. POST, GET and PUT on an existing
 `reviewed` or `published` result return 409. These endpoints never transition,
 reset, publish or correct results. Ordinary saves also reject drafts containing
-exceptional override entries, reserving that workflow for a later ticket.
+exceptional override entries. Use the explicit [shared-position API](shared-position-api.md)
+to assign, change or remove ties with an audited reason.
 
 Verified `request.auth.uid` supplies the audit actor. Creation writes
 `result_draft_created`; each successful PUT writes `result_draft_updated` with

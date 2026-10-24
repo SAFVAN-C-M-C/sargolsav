@@ -20,6 +20,11 @@ RLS/grant boundary. Apply it before using the lifecycle/public result APIs.
 Previously reviewed records require a fresh review; published records remain
 visible through backfilled snapshots. See `../docs/result-lifecycle-api.md`.
 
+TKT-06D adds `0008_correction_shared_positions.sql`, mirroring live-entry override
+audit FKs and partial ordinary-position uniqueness in `correction_entries`.
+Candidate uniqueness, table RLS/grants and existing deletion protection remain.
+Apply before explicit shared-position editing; see `../docs/shared-position-api.md`.
+
 Add immutable UTF-8 NNNN_lowercase_name.sql files with unique four-digit prefixes.
 They run in filename order, each in its own transaction, together with its history
 record. Do not put BEGIN/COMMIT/ROLLBACK, nontransactional statements (such as

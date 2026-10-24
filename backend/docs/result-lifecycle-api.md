@@ -19,7 +19,8 @@ Require `Authorization: Bearer <Firebase ID token>` with a verified boolean
 | POST | `/publish` | Publish a reviewed result; `{ "result": ... }` |
 | POST | `/corrections` | Create a separate correction draft, 201 `{ "correction": ... }` |
 | GET | `/corrections/:correctionId` | Read the scoped correction, including applied history |
-| PUT | `/corrections/:correctionId` | Replace all entries in a correction draft |
+| PUT | `/corrections/:correctionId` | Replace ordinary entries in a correction draft |
+| PUT | `/corrections/:correctionId/shared-positions` | Explicit audited tie editing; see [TKT-06D](shared-position-api.md) |
 | POST | `/corrections/:correctionId/review` | Review a complete correction draft |
 | POST | `/corrections/:correctionId/return-to-draft` | Clear a correction review |
 | POST | `/corrections/:correctionId/publish` | Apply the reviewed correction atomically |
@@ -64,11 +65,12 @@ published again through ordinary endpoints. The existing draft endpoints continu
 to reject reviewed and published results. Initialize/edit operations remain
 incomplete-draft friendly; review and publication require completeness.
 
-Completeness means one winner for **every key** in the competition's nonempty
+Completeness means at least one winner for **every key** in the competition's nonempty
 `position_points` map. This avoids inventing a fixed top-three rule. Zero-point
 positions are still configured positions and require winners. Empty/incomplete
-results, extra/unconfigured positions, duplicate positions or candidates, missing
-candidate identity, and exceptional shared-position entries are rejected.
+results, extra/unconfigured positions, duplicate candidates and missing candidate
+identity are rejected. Duplicate positions require explicit [TKT-06D approval](shared-position-api.md);
+normal editing still rejects them. Ties never replace coverage of other positions.
 Competition/category/unit/Madrassa relationships retain their composite FKs and
 existing validation. No score calculation or leaderboard is implemented.
 
@@ -181,7 +183,8 @@ Example public result:
 ```
 
 Lists order by category ID, event display order, then event ID. Winners order by
-position, then stable entry ID for migrated legacy results. Lists are unpaginated.
+position, then candidate code/ID for new publications. Migrated legacy snapshots
+retain their stable original order. Lists are unpaginated.
 A public read selects the latest committed snapshot in one SQL statement, so
 correction publication exposes the complete old or complete new projection.
 The shared points configuration remains authoritative for future scoring; these
@@ -246,6 +249,6 @@ rows inserted manually after migration have no public snapshot until the control
 workflow creates one; trusted SQL is not an alternative publication API.
 
 Future writers must lock/update the result/workspace header when editing entries
-and must not update/delete publication history. No review/publish flow is added
-for exceptional shared-position overrides (TKT-06D), and no leaderboard, scoring
-API, frontend page, or configurable ranking algorithm is implemented.
+and must not update/delete publication history. [TKT-06D](shared-position-api.md)
+adds explicit shared-position approval and its review/publication validation.
+No leaderboard, scoring API, frontend page, or configurable ranking algorithm is implemented.
