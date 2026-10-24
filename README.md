@@ -1,9 +1,9 @@
 # sargolsav
 
 Mobile-first Zonal Madrassa Cultural Competition Results application.
-This foundation covers TKT-01 through TKT-04A, including PostgreSQL utilities,
-versioned competition schema migrations, local development fixtures, and backend
-Firebase admin authentication.
+This foundation covers TKT-01 through TKT-04B, including PostgreSQL utilities,
+versioned competition schema migrations, local development fixtures, and Firebase
+admin authentication.
 
 ## Requirements and setup
 
@@ -52,9 +52,10 @@ npm test
 npm run build
 ```
 
-Tests use Node's built-in test runner and exercise health endpoints, API 404
-behavior, security headers, CORS, body parser limits, Firebase authorization
-with mocked verification, claim provisioning, and PostgreSQL behavior.
+Tests use Node's built-in runner for backend behavior and Vitest for frontend
+authentication flows. They cover health endpoints, API errors, Firebase
+authorization, credential handling, claim provisioning, route protection, login,
+logout, token refresh, and PostgreSQL behavior.
 `npm run build` typechecks and builds the frontend into
 `frontend/dist`. `npm run preview --workspace frontend` previews that build;
 the preview server does not proxy API requests. `npm start --workspace backend`
@@ -62,7 +63,8 @@ runs the backend without watch mode. Deployment configuration is outside TKT-01.
 
 ## Structure and scope
 
-- `frontend/src`: React and TypeScript entry point and mobile-first foundation styles.
+- `frontend/src`: React and TypeScript entry point, public page, admin login,
+  protected placeholder, Firebase Auth provider, and mobile-first styles.
 - `backend/src/routes`: HTTP route registration.
 - `backend/src/controllers`: HTTP request/response handling.
 - `backend/src/middleware`: API 404 catcher and error handling.
@@ -71,8 +73,8 @@ runs the backend without watch mode. Deployment configuration is outside TKT-01.
 - `backend/src/config/app.js`: Express app, independently importable for tests.
 - `backend/src/index.js`: environment configuration and listener startup.
 
-The backend uses JavaScript ES modules. Frontend login, competition management
-services, and the remaining API data contract are deferred. PostgreSQL is
+The backend uses JavaScript ES modules. Competition management services and the
+remaining API data contract are deferred. PostgreSQL is
 optional for application-only development and mock-based tests. Frontend
 environment values are public; never put secrets in `VITE_*` variables. Local
 environment files are ignored; commit only sanitized examples.
@@ -118,7 +120,7 @@ intended project.
 Give the runtime identity permission to use Firebase Authentication. Never commit
 `backend/.env` or a key file, or expose private-key material through `VITE_*`.
 Keep local credentials readable only by the backend operator. The frontend
-Firebase web config and login flow are outside this ticket.
+Firebase web config and login flow are documented below.
 
 To grant or revoke admin on an **existing** Firebase user, run the backend-only
 CLI manually with the exact project ID in `FIREBASE_PROJECT_ID`:
@@ -143,6 +145,51 @@ tokens as secrets: do not paste them into logs, source files, or bug reports.
 `GET /api/health` and `GET /api/health/db` require no token. The provisioning CLI
 is a write operation; validate its argument guard with an intentionally mismatched
 `--project` rather than running `grant` or `revoke` during routine checks.
+
+## Frontend admin login (TKT-04B)
+
+In Firebase Console, open **Project settings → General → Your apps**. Register a
+Web app if needed, then copy these four values from its **SDK setup and
+configuration** `firebaseConfig` object into the ignored
+`frontend/.env.local` file (starting from `frontend/.env.example`):
+
+| Frontend variable | Firebase web config field | Safe in frontend? |
+| --- | --- | --- |
+| `VITE_FIREBASE_API_KEY` | `apiKey` | Yes. It identifies the Firebase project; it is not a service-account secret. |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `authDomain` | Yes. Public authentication domain. |
+| `VITE_FIREBASE_PROJECT_ID` | `projectId` | Yes. Must match the backend's `FIREBASE_PROJECT_ID`. |
+| `VITE_FIREBASE_APP_ID` | `appId` | Yes. Public Web app identifier. |
+
+Enable **Authentication → Sign-in method → Email/Password** in Firebase Console.
+Use an existing Firebase user with an admin claim provisioned through the backend
+CLI. Do not create a public signup flow or put backend `FIREBASE_PRIVATE_KEY`,
+`FIREBASE_CLIENT_EMAIL`, service-account JSON, passwords, or ID tokens in
+`VITE_*` variables. Vite embeds these web identifiers in the client bundle, so
+backend verification and Firebase security rules provide the access boundary.
+
+Run `npm run dev` from the repository root and visit `/admin/login`. After
+sign-in, the Firebase SDK persists the session locally and the frontend sends a
+current ID token to `GET /api/admin/me`. Only a 200 response containing a matching
+verified UID and `admin: true` opens `/admin`. A 403 shows access denied; a 401
+refreshes the token once, then returns to login if still rejected. Network/server
+errors show a retryable unavailable state. The admin dashboard is a placeholder;
+competition management is not implemented. The public `/` page stays accessible
+without Firebase configuration.
+
+To check the flow manually, try a valid admin account, a signed-in non-admin
+account, a wrong password, refresh `/admin`, and sign out. A newly granted admin
+may need to use **Check access again** to force a fresh ID token. Never paste ID
+tokens or passwords into logs or issue reports. The browser's Network panel can
+confirm a request to `/api/admin/me` and its status without copying the bearer
+token.
+
+For production, configure the four `VITE_*` values at **build time**, serve the
+frontend and `/api` through the same origin or a secure reverse proxy, and use
+HTTPS. Configure a history fallback so direct requests to `/admin` and
+`/admin/login` return `index.html`. The Vite development proxy does not apply to
+the static production build or `vite preview`. If hosting the API on another
+origin, configure a deliberate backend CORS origin and an API routing strategy;
+the current frontend uses relative `/api` URLs.
 
 ## PostgreSQL foundation (TKT-02)
 
