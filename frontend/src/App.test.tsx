@@ -3,7 +3,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { AppRoutes } from './App';
-import type { AuthClient, AuthUser } from './auth/firebaseClient';
+import type { AuthClient, AuthUser } from './types/auth';
 
 afterEach(cleanup);
 

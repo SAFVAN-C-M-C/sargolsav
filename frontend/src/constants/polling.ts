@@ -1,0 +1,2 @@
+export const PUBLIC_REFRESH_INTERVAL = 15_000;
+export const MAX_RETRY_DELAY = 60_000;

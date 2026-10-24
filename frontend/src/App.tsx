@@ -1,9 +1,11 @@
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
-import { AdminDashboard, AdminLogin, RequireAdmin } from './auth/AdminPages';
-import { AuthProvider } from './auth/AuthProvider';
-import { firebaseAuthClient } from './auth/firebaseClient';
-import type { AuthClient } from './auth/firebaseClient';
-import { PublicApp } from './public/PublicApp';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminLogin } from './pages/admin/AdminLogin';
+import { RequireAdmin } from './components/admin/RequireAdmin';
+import { AuthProvider } from './providers/AuthProvider';
+import { firebaseAuthClient } from './lib/firebaseClient';
+import type { AuthClient } from './types/auth';
+import { PublicApp } from './routes/PublicApp';
 
 function AdminShell({ client, fetcher }: { client: AuthClient; fetcher: typeof fetch }) {
   return <AuthProvider client={client} fetcher={fetcher}><main className="admin-main"><Outlet /></main></AuthProvider>;

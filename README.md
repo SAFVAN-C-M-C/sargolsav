@@ -1,5 +1,8 @@
 # sargolsav
 
+See the [frontend structure guide](frontend/README.md) for source folders,
+component grouping, import conventions, and frontend verification commands.
+
 TKT-08D adds visibility-aware public polling, retained-data background retries,
 and focused mobile improvements. See the [live-update guide](docs/TKT-08D-public-live-updates.md)
 for timing, request optimization, error behavior and manual checks.
