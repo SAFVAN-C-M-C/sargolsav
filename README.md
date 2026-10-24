@@ -1,10 +1,13 @@
 # sargolsav
 
+TKT-07A adds dynamic [category-wise public unit scoring](backend/docs/scoring-api.md).
+
 Mobile-first Zonal Madrassa Cultural Competition Results application.
-This foundation covers TKT-01 through TKT-06D, including PostgreSQL utilities,
+This foundation covers TKT-01 through TKT-07A, including PostgreSQL utilities,
 versioned competition schema migrations, local development fixtures, and Firebase
 admin authentication and competition, unit/Madrassa, category/event, candidate,
-private result drafts, review, publication, corrections, and public result APIs.
+private result drafts, review, publication, corrections, public result APIs,
+and category-wise unit scoring.
 
 See [Competition management API](backend/docs/competition-api.md) for authenticated
 endpoints, examples, lifecycle rules, shared points validation and error responses.
