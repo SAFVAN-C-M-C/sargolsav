@@ -1,5 +1,8 @@
 # TKT-08A — public frontend foundation and category browsing
 
+This records the 08A delivery. [TKT-08B](TKT-08B-public-results.md) subsequently
+replaces its category placeholder with event listings and published result screens.
+
 ## Routes and behavior
 
 | Route | Screen |
