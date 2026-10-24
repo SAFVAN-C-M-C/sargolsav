@@ -55,8 +55,9 @@ in place; deletion policies below protect existing references.
 Drafts have no review/publication metadata; reviewed rows require reviewer/time;
 published rows require both reviewer/time and publisher/time, in time order.
 `reviewed_by`, `published_by`, and `audit_logs.actor_ref` are opaque, nonblank
-references to a future admin identity. This ticket creates no admin table or auth.
-The database checks state shape, not the sequence of transitions or actor authority.
+identity references. TKT-04A supplies a verified Firebase UID for future writers;
+there is no admin table. The database checks state shape, not the sequence of
+transitions or actor authority.
 
 ## Points and derived standings
 
@@ -107,10 +108,10 @@ Material business decisions still needed before scoring/publication services:
 ## Transaction-level service validation (future work)
 
 Database clients are trusted migration/backend code; FK metadata does not
-authenticate an admin. Future services must authenticate/authorize the sole admin
-role, derive actor references from authentication, and atomically write override
-audit + entries. Audit details should identify the position, affected candidate IDs
-and approval context. Check that approval applies to the actual edit, including
+authenticate an admin. Future services must mount the TKT-04A authentication and
+admin middleware, derive actor references from `request.auth.uid`, and atomically
+write override audit + entries. Audit details should identify the position,
+affected candidate IDs and approval context. Check that approval applies to the actual edit, including
 when an entry references an existing approval; a FK alone cannot establish this.
 
 Lock the parent `event_results` row (`SELECT ... FOR UPDATE`) for *all* entry,
