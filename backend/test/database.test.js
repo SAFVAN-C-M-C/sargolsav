@@ -184,7 +184,8 @@ test('concurrent migration runners re-read history after the shared lock (mock d
       },
     };
     const results = await Promise.all([migrate(connectionPool, directory), migrate(connectionPool, directory)]);
-    assert.deepEqual(results, [['0002_next.sql', '0003_last.sql'], []]);
+    // Either runner may acquire the lock first after asynchronous file discovery.
+    assert.deepEqual(results.sort((a, b) => b.length - a.length), [['0002_next.sql', '0003_last.sql'], []]);
     assert.deepEqual(insertions, ['0002_next.sql', '0003_last.sql']);
     assert.equal(releases, 2);
   });
