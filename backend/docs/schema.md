@@ -73,14 +73,16 @@ join candidates for unit grouping and look up each entry's position in the share
 settings. Sum **every** entry, including multiple winners from the same unit and
 authorized ties. Never deduplicate by unit or count draft/reviewed results.
 
+TKT-05A settles settings policy in the [competition API](competition-api.md):
+API writes require non-negative safe whole-number points, and settings edits must
+affect future published leaderboard calculations through current shared settings.
+The original database constraint still accepts numeric values; legacy/direct SQL
+data may need correction before scoring. No frozen snapshots or leaderboard
+implementation are introduced. Empty/missing position configuration remains
+allowed and requires explicit handling in future publication/scoring services.
+
 Material business decisions still needed before scoring/publication services:
 
-- Are negative/fractional points permitted? The schema accepts numeric values
-  without inventing a sign/range policy.
-- Do settings edits rescore published events, or should publication freeze a
-  version/snapshot? This schema stores current shared settings only. Direct
-  derivation uses current settings. Do not ship a settings-edit or scoring service
-  until this policy is settled; no snapshot policy is silently implemented.
 - Review invalidation, publication corrections, self-review and empty-result
   publication policy need service decisions. Metadata supports review but does
   not invent approval separation or lock results permanently.

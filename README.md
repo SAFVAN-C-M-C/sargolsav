@@ -1,9 +1,12 @@
 # sargolsav
 
 Mobile-first Zonal Madrassa Cultural Competition Results application.
-This foundation covers TKT-01 through TKT-04B, including PostgreSQL utilities,
+This foundation covers TKT-01 through TKT-05A, including PostgreSQL utilities,
 versioned competition schema migrations, local development fixtures, and Firebase
-admin authentication.
+admin authentication and competition management APIs.
+
+See [Competition management API](backend/docs/competition-api.md) for authenticated
+endpoints, examples, lifecycle rules, shared points validation and error responses.
 
 ## Requirements and setup
 
@@ -72,14 +75,15 @@ the scoped gRPC security override, its compatibility limits, and when to remove 
 - `backend/src/routes`: HTTP route registration.
 - `backend/src/controllers`: HTTP request/response handling.
 - `backend/src/middleware`: API 404 catcher and error handling.
-- `backend/src/services`: application operations (currently health status only).
+- `backend/src/services`: health status and transactional competition operations.
 - `backend/src/db`: shared PostgreSQL pool, query/transaction utilities, and migration runner.
 - `backend/src/config/app.js`: Express app, independently importable for tests.
 - `backend/src/index.js`: environment configuration and listener startup.
 
-The backend uses JavaScript ES modules. Competition management services and the
-remaining API data contract are deferred. PostgreSQL is
-optional for application-only development and mock-based tests. Frontend
+The backend uses JavaScript ES modules. Competition management APIs are implemented;
+units, Madrasas, categories, events, candidates, results and leaderboard APIs
+remain deferred. PostgreSQL is optional for application-only development and
+mock-based tests. Frontend
 environment values are public; never put secrets in `VITE_*` variables. Local
 environment files are ignored; commit only sanitized examples.
 
@@ -177,7 +181,7 @@ current ID token to `GET /api/admin/me`. Only a 200 response containing a matchi
 verified UID and `admin: true` opens `/admin`. A 403 shows access denied; a 401
 refreshes the token once, then returns to login if still rejected. Network/server
 errors show a retryable unavailable state. The admin dashboard is a placeholder;
-competition management is not implemented. The public `/` page stays accessible
+competition management UI is not implemented. The public `/` page stays accessible
 without Firebase configuration.
 
 To check the flow manually, try a valid admin account, a signed-in non-admin
