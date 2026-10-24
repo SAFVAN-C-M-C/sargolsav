@@ -1,4 +1,7 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { createPublicResource as resource } from './publicResource';
+import { PublicApiError, PublicPayloadError } from './publicErrors';
+export { PublicApiError } from './publicErrors';
+export { usePublicResource, usePollingResource } from './publicResource';
 
 export interface Competition { id: string; name: string }
 export interface Category { id: string; name: string; sort_order: number }
@@ -27,31 +30,6 @@ export interface CandidateRanking extends UnitRanking {
   madrasa_id?: string | null; madrasa_name?: string | null;
 }
 export type Ranking = UnitRanking | CandidateRanking;
-export class PublicApiError extends Error {
-  constructor(public readonly status: number) { super('Public data unavailable'); }
-}
-type Snapshot<T> = { status: 'loading' } | { status: 'ready'; data: T } | { status: 'error'; error: unknown };
-
-function resource<T>(read: () => Promise<T>) {
-  let snapshot: Snapshot<T> = { status: 'loading' };
-  let pending = false;
-  const listeners = new Set<() => void>();
-  const emit = () => listeners.forEach((listener) => listener());
-  const load = () => {
-    if (pending || snapshot.status === 'ready') return;
-    pending = true;
-    read().then((data) => { snapshot = { status: 'ready', data }; },
-      (error: unknown) => { snapshot = { status: 'error', error }; })
-      .finally(() => { pending = false; emit(); });
-  };
-  return {
-    subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; },
-    getSnapshot: () => snapshot,
-    load,
-    retry: () => { snapshot = { status: 'loading' }; emit(); load(); },
-  };
-}
-
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const isCompetition = (value: unknown): value is Competition => isRecord(value) &&
   typeof value.id === 'string' && /^[1-9][0-9]*$/.test(value.id) && typeof value.name === 'string';
@@ -80,14 +58,14 @@ export function createPublicApi(fetcher: typeof fetch) {
     const response = await fetcher(url, { headers: { Accept: 'application/json' }, ...(fresh ? { cache: 'no-store' as const } : {}) });
     if (!response.ok) throw new PublicApiError(response.status);
     const value: unknown = await response.json();
-    if (!validate(value)) throw new Error('Invalid public response');
+    if (!validate(value)) throw new PublicPayloadError();
     return value;
   }
   const competitions = resource(async () => (await get('/api/competitions',
     (value): value is { competitions: Competition[] } => isRecord(value) &&
       Array.isArray(value.competitions) && value.competitions.every(isCompetition))).competitions);
   const catalogs = new Map<string, ReturnType<typeof resource<Catalog>>>();
-  // Snapshot screens retain data only while mounted. Share in-flight reads, not old standings/winners.
+  // Share in-flight reads, never old winners/standings across screen visits.
   const pending = new Map<string, Promise<unknown>>();
   function freshGet<T>(url: string, validate: (value: unknown) => value is T): Promise<T> {
     const existing = pending.get(url);
@@ -134,25 +112,26 @@ export function createPublicApi(fetcher: typeof fetch) {
           typeof result.publication_id === 'string' && typeof result.published_at === 'string' &&
           Array.isArray(result.winners) && result.winners.every(isWinner);
       })).result;
+      let awaiting = false;
+      const availability = async () => (await freshGet(`${base}/status`, (value): value is { availability: { status: 'published' | 'unpublished' } } =>
+        isRecord(value) && isRecord(value.availability) && value.availability.event_id === eventId &&
+        value.availability.category_id === categoryId && (value.availability.status === 'published' || value.availability.status === 'unpublished'))).availability;
       return resource<PublishedResult | null>(async () => {
+        if (awaiting) {
+          if ((await availability()).status === 'unpublished') return null;
+          awaiting = false;
+        }
         try { return await read(); }
         catch (error) {
           if (!(error instanceof PublicApiError) || error.status !== 404) throw error;
           // A result 404 can mean unpublished or nonexistent. The availability API distinguishes them.
-          const { availability } = await freshGet(`${base}/status`, (value): value is { availability: { status: 'published' | 'unpublished' } } =>
-            isRecord(value) && isRecord(value.availability) && value.availability.event_id === eventId &&
-            value.availability.category_id === categoryId && (value.availability.status === 'published' || value.availability.status === 'unpublished'));
+          const state = await availability();
           // Publication may have committed between the two reads. Fetch that new publication once.
-          return availability.status === 'unpublished' ? null : read();
+          awaiting = state.status === 'unpublished';
+          return awaiting ? null : read();
         }
       });
     },
   };
 }
 export type PublicApi = ReturnType<typeof createPublicApi>;
-
-export function usePublicResource<T>(entry: ReturnType<typeof resource<T>>) {
-  const snapshot = useSyncExternalStore(entry.subscribe, entry.getSnapshot);
-  useEffect(() => { entry.load(); }, [entry]);
-  return snapshot;
-}

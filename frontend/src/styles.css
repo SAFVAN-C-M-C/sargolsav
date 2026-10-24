@@ -40,6 +40,11 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .skip-link { position: fixed; top: -8rem; left: 1rem; z-index: 10; padding: 1rem; background: var(--surface); }
 .skip-link:focus { top: 1rem; }
 .public-header, .public-main, .public-footer { width: min(100%, 68rem); margin-inline: auto; padding-inline: clamp(1rem, 4vw, 3rem); }
+.public-header, .public-main, .public-footer { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
+.public-app { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+.refresh-status { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 5rem; color: var(--muted); font-size: .8rem; }
+.refresh-status p { flex: 1; margin: 0; overflow-wrap: anywhere; }
+.refresh-status button { flex-shrink: 0; min-height: 44px; font-size: .8rem; }
 .public-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: .65rem; text-decoration: none; color: var(--ink); font-size: 1.6rem; font-weight: 750; letter-spacing: -.07em; }
 .brand-symbol { display: grid; place-items: center; background: var(--ink); color: #f5e9b8; border-radius: .85rem; width: 2.8rem; height: 2.8rem; font-size: 1.9rem; }

@@ -1,25 +1,26 @@
 import { useMemo } from 'react';
 import { Link, NavLink, useNavigate, useOutletContext } from 'react-router-dom';
-import { PublicApiError, usePublicResource } from './publicApi';
+import { PublicApiError, usePollingResource } from './publicApi';
 import type { Category, LeaderboardType, PublicApi } from './publicApi';
 import { leaderboardPath } from './publicPaths';
 import { EmptyState, ErrorState, LoadingCards } from './PublicStates';
 import { RankingList } from './RankingList';
+import { RefreshStatus } from './RefreshStatus';
 
 function Standings({ competitionId, categoryId, type }: {
   competitionId: string; categoryId?: string; type: LeaderboardType;
 }) {
   const api = useOutletContext<PublicApi>();
   const entry = useMemo(() => api.leaderboard(competitionId, categoryId, type), [api, competitionId, categoryId, type]);
-  const state = usePublicResource(entry);
+  const state = usePollingResource(entry);
   if (state.status === 'loading') return <LoadingCards label="Loading leaderboard" />;
   if (state.status === 'error') return state.error instanceof PublicApiError && [400, 404].includes(state.error.status) ?
     <EmptyState title="Leaderboard unavailable">This competition or category is no longer available. <Link to={leaderboardPath(competitionId)}>View overall rankings</Link>.</EmptyState> :
     <ErrorState retry={entry.retry} />;
-  if (!state.data.length) return <EmptyState title={type === 'units' ? 'No units to display' : 'No candidates to display'}>
+  if (!state.data.length) return <><RefreshStatus state={state} retry={entry.retry} /><EmptyState title={type === 'units' ? 'No units to display' : 'No candidates to display'}>
     {type === 'units' ? 'Units will appear here once they are added to this competition.' : 'Candidates will appear here once they are added to this category.'}
-  </EmptyState>;
-  return <>{state.data.every((row) => row.winning_entries === '0') &&
+  </EmptyState></>;
+  return <><RefreshStatus state={state} retry={entry.retry} />{state.data.every((row) => row.winning_entries === '0') &&
     <p className="leaderboard-note">No published wins for these participants yet. Zero-point entries remain in the rankings.</p>}
     <RankingList rows={state.data} candidates={type === 'candidates'} />
   </>;

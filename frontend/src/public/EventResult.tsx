@@ -1,9 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { PublicApiError, usePublicResource } from './publicApi';
+import { PublicApiError, usePollingResource } from './publicApi';
 import type { PublicApi, Winner } from './publicApi';
 import { categoryPath } from './publicPaths';
 import { EmptyState, ErrorState, LoadingCards } from './PublicStates';
+import { RefreshStatus } from './RefreshStatus';
 
 function positionLabel(position: number) {
   const lastTwo = position % 100;
@@ -40,11 +41,12 @@ export function EventResult({ competitionId, categoryId, eventId, eventName, cat
 }) {
   const api = useOutletContext<PublicApi>();
   const entry = useMemo(() => api.eventResult(competitionId, categoryId, eventId), [api, competitionId, categoryId, eventId]);
-  const state = usePublicResource(entry);
+  const state = usePollingResource(entry);
   const result = state.status === 'ready' ? state.data : null;
   useEffect(() => { document.title = `${result?.event_name ?? eventName} · ${result?.category_name ?? categoryName} · Sargolsav`; }, [result, eventName, categoryName]);
   return <section aria-labelledby="event-title"><div className="event-heading"><p className="eyebrow">{result?.category_name ?? categoryName}</p>
     <h2 id="event-title">{result?.event_name ?? eventName}</h2></div>
+    <RefreshStatus state={state} retry={entry.retry} />
     {state.status === 'loading' ? <LoadingCards label="Loading published result" /> : state.status === 'error' ?
       state.error instanceof PublicApiError && [400, 404].includes(state.error.status) ?
         <EmptyState title="Event unavailable">This event is no longer available. <Link to={categoryPath(competitionId, categoryId)}>Browse events</Link>.</EmptyState> :
