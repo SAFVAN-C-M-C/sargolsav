@@ -87,6 +87,7 @@ test('TKT-05D complete setup through the production Express application', { time
           '0004_category_event_order.sql', '0005_protect_event_results.sql',
           '0006_restrict_client_database_access.sql',
           '0007_result_publications_and_corrections.sql',
+          '0008_correction_shared_positions.sql',
         ]);
         const indexes = (await pool.query("SELECT indexname,indexdef FROM pg_indexes WHERE schemaname=current_schema() AND indexname IN ('categories_display_order_idx','events_display_order_idx')")).rows;
         assert.equal(indexes.length, 2);

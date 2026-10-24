@@ -74,6 +74,6 @@ test('TKT-05D client roles cannot bypass Firebase authorization, tamper with aud
       await pool.query(securitySql);
     }
     assert.equal((await pool.query('SELECT code FROM competitions')).rows[0].code, 'local-demo');
-    assert.equal((await pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count, '7');
+    assert.equal((await pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count, '8');
   });
 });
