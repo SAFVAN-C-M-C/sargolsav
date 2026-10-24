@@ -14,6 +14,7 @@ export function createPublicCatalogRouter(service = createPublicCatalogService()
   };
   router.get('/', handle(async () => ({ competitions: await service.list() })));
   router.get('/:competitionId/categories', handle((req) => service.categories(req.params.competitionId)));
+  router.get('/:competitionId/categories/:categoryId/events', handle((req) => service.events(req.params.competitionId, req.params.categoryId)));
   return router;
 }
 

@@ -2,10 +2,12 @@ import express from 'express';
 import { once } from 'node:events';
 import { createPublicCatalogRouter } from '../src/routes/publicCatalog.js';
 import errorHandler from '../src/middleware/errorHandler.js';
+import { createPublicResultRouter } from '../src/routes/resultLifecycle.js';
 
-export async function servePublicCatalog(service, work) {
+export async function servePublicCatalog(service, work, publicResults) {
   const app = express();
   app.use('/api/competitions', createPublicCatalogRouter(service));
+  if (publicResults) app.use('/api/competitions/:competitionId', createPublicResultRouter(publicResults));
   app.use(errorHandler);
   const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
