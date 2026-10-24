@@ -1,5 +1,8 @@
 # TKT-08B — public event listings and published results
 
+This records the 08B delivery. [TKT-08C](TKT-08C-public-leaderboards.md) subsequently
+replaces its leaderboard placeholder with overall and category ranking screens.
+
 ## Screens and routes
 
 | Route | Behavior |

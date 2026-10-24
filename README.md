@@ -1,5 +1,9 @@
 # sargolsav
 
+TKT-08C adds public overall unit, category unit and category candidate leaderboard
+screens. See the [leaderboard frontend guide](docs/TKT-08C-public-leaderboards.md)
+for routes, exact-value handling, API integration and manual checks.
+
 TKT-08B adds public event listings and published winner screens, including shared
 positions and published corrections. See the [public results guide](docs/TKT-08B-public-results.md)
 for routes, API integration, visibility, verification and manual checks.
@@ -111,8 +115,8 @@ the scoped gRPC security override, its compatibility limits, and when to remove 
 
 The backend uses JavaScript ES modules. Competition, unit, Madrassa, category and
 event, candidate, result and leaderboard APIs are implemented. Public event-result
-screens are implemented in TKT-08B; leaderboard frontend screens remain deferred
-to TKT-08C. PostgreSQL is optional for application-only development and
+screens are implemented in TKT-08B and leaderboard screens in TKT-08C. Automatic
+refresh remains deferred to TKT-08D. PostgreSQL is optional for application-only development and
 mock-based tests. Frontend
 environment values are public; never put secrets in `VITE_*` variables. Local
 environment files are ignored; commit only sanitized examples.
