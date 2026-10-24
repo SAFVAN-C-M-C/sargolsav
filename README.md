@@ -1,5 +1,9 @@
 # sargolsav
 
+TKT-08A adds the mobile-first public application foundation, competition selection,
+and configurable category browsing. See the [public frontend guide](docs/TKT-08A-public-frontend.md)
+for routes, API visibility, component architecture, verification and manual checks.
+
 TKT-07A adds dynamic [category-wise public unit scoring](backend/docs/scoring-api.md).
 TKT-07B adds the [category-wise public candidate leaderboard](backend/docs/candidate-leaderboard-api.md).
 TKT-07C adds the [overall unit leaderboard and scoring integration review](backend/docs/overall-leaderboard-api.md).
@@ -91,7 +95,7 @@ the scoped gRPC security override, its compatibility limits, and when to remove 
 
 ## Structure and scope
 
-- `frontend/src`: React and TypeScript entry point, public page, admin login,
+- `frontend/src`: React and TypeScript entry point, public competition/category browser, admin login,
   protected placeholder, Firebase Auth provider, and mobile-first styles.
 - `backend/src/routes`: HTTP route registration.
 - `backend/src/controllers`: HTTP request/response handling.
@@ -102,8 +106,8 @@ the scoped gRPC security override, its compatibility limits, and when to remove 
 - `backend/src/index.js`: environment configuration and listener startup.
 
 The backend uses JavaScript ES modules. Competition, unit, Madrassa, category and
-event management APIs are implemented; candidate, result and leaderboard APIs
-remain deferred. PostgreSQL is optional for application-only development and
+event, candidate, result and leaderboard APIs are implemented. Public event-result
+and leaderboard frontend screens remain deferred after TKT-08A. PostgreSQL is optional for application-only development and
 mock-based tests. Frontend
 environment values are public; never put secrets in `VITE_*` variables. Local
 environment files are ignored; commit only sanitized examples.
