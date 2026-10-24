@@ -5,6 +5,7 @@ import healthRouter from "../routes/health.js";
 import adminRouter from "../routes/admin.js";
 import competitionRouter from "../routes/competitions.js";
 import participantRouter from "../routes/participants.js";
+import catalogRouter from "../routes/catalog.js";
 import notFound from "../middleware/notFound.js";
 import errorHandler from "../middleware/errorHandler.js";
 
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use("/api/health", healthRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/admin/competitions/:competitionId/units", participantRouter);
+app.use("/api/admin/competitions/:competitionId/categories", catalogRouter);
 app.use("/api/admin/competitions", competitionRouter);
 app.use("/api", notFound);
 app.use(errorHandler);
