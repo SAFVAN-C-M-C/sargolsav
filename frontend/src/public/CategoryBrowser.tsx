@@ -2,11 +2,13 @@ import { Link } from 'react-router-dom';
 import type { Category } from './publicApi';
 import { resultsPath } from './publicPaths';
 import { EmptyState } from './PublicStates';
+import { EventBrowser } from './EventBrowser';
 
-export function CategoryBrowser({ competitionId, categories, categoryId }: {
+export function CategoryBrowser({ competitionId, categories, categoryId, eventId }: {
   competitionId: string;
   categories: Category[];
   categoryId?: string;
+  eventId?: string;
 }) {
   const base = resultsPath(competitionId);
   if (categoryId) {
@@ -14,8 +16,8 @@ export function CategoryBrowser({ competitionId, categories, categoryId }: {
     if (!category) return <EmptyState title="Category not found">
       This category is not available in this competition. <Link to={base}>Browse categories</Link>.
     </EmptyState>;
-    return <><h2 className="section-title">{category.name}</h2>
-      <EmptyState title="Event results are coming soon">You are browsing {category.name}. Event results will be available here in a future update.</EmptyState></>;
+    return <>{!eventId && <h2 className="section-title">{category.name}</h2>}
+      <EventBrowser key={eventId ?? 'listing'} competitionId={competitionId} categoryId={categoryId} eventId={eventId} /></>;
   }
   return <section aria-labelledby="categories-title">
     <div className="section-heading"><div><p className="eyebrow">Find your category</p>

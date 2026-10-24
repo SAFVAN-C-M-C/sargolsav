@@ -11,7 +11,7 @@ const competitions = [{ id: '1', name: 'Sargolsav 2026' }, { id: '2', name: 'Com
 const categories = [{ id: '9', name: 'Custom junior group', sort_order: 1 }, { id: '4', name: 'Senior scholars', sort_order: 10 }];
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body }) as Response;
 function api(list = competitions) {
-  return vi.fn(async (url: string) => url === '/api/competitions' ? response({ competitions: list }) :
+  return vi.fn(async (url: string) => url.endsWith('/events') ? response({ category: { id: url.split('/').at(-2), name: 'Category' }, events: [] }) : url === '/api/competitions' ? response({ competitions: list }) :
     response({ competition: url.includes('/2/') ? competitions[1] : competitions[0], categories: url.includes('/2/') ? [] : categories }));
 }
 function Probe() {
@@ -36,7 +36,7 @@ test('home loads backend categories, canonical competition URL, and deduplicates
   expect(screen.getByRole('link', { name: /Results$/ }).getAttribute('aria-current')).toBe('page');
 });
 
-test('category deep links, tabs and browser back preserve competition context without duplicate reads', async () => {
+test('category deep links, tabs and browser back preserve competition context and refresh event availability', async () => {
   const { user, fetcher } = setup();
   await user.click(await screen.findByRole('link', { name: /Senior scholars.*Explore/ }));
   expect(screen.getByTestId('path').textContent).toBe('/competitions/1/results/categories/4');
@@ -46,7 +46,8 @@ test('category deep links, tabs and browser back preserve competition context wi
   expect(screen.getByTestId('path').textContent).toBe('/competitions/1/leaderboards');
   await user.click(screen.getByRole('button', { name: 'Browser back' }));
   expect(await screen.findByRole('heading', { name: 'Senior scholars' })).toBeTruthy();
-  expect(fetcher).toHaveBeenCalledTimes(2);
+  await screen.findByRole('heading', { name: 'Events are on the way' });
+  expect(fetcher).toHaveBeenCalledTimes(4);
 });
 
 test('multiple competitions remain selectable, including a competition without categories', async () => {

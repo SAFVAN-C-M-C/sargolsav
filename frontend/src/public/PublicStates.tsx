@@ -1,6 +1,6 @@
-export function LoadingCards() {
-  return <div role="status" aria-label="Loading competitions and categories" className="loading-cards">
-    <span className="sr-only">Loading competitions and categories…</span>
+export function LoadingCards({ label = 'Loading competitions and categories' }: { label?: string }) {
+  return <div role="status" aria-label={label} className="loading-cards">
+    <span className="sr-only">{label}…</span>
     {[1, 2, 3].map((key) => <div className="skeleton" aria-hidden="true" key={key} />)}
   </div>;
 }

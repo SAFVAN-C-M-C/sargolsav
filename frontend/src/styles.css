@@ -69,6 +69,32 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .category-copy strong { display: block; font-size: 1.1rem; }
 .category-copy > span { display: block; margin-top: .35rem; font-size: .8rem; color: var(--muted); }
 .card-arrow { font-size: 1.3rem; }
+.event-card { min-height: 112px; }
+.category-copy > .result-status, .result-status { display: inline-block; width: fit-content; max-width: 100%; padding: .35rem .65rem; border-radius: 2rem; font-size: .75rem; font-weight: 650; line-height: 1.5; }
+.result-status.is-published { color: #14533e; background: #e0f0e4; }
+.result-status.is-awaiting { color: #79531b; background: #faf0d9; }
+.event-heading { margin-block: 1.5rem; overflow-wrap: anywhere; }
+.event-heading h2 { margin-block: .5rem; font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: -.025em; }
+.publication-label { margin-block: 0 1rem; }
+.winner-positions { display: grid; gap: 1.25rem; }
+.winner-position { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; min-width: 0; }
+.position-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: 1rem; background: var(--soft); }
+.position-heading h4 { display: flex; align-items: center; gap: .65rem; margin: 0; font-size: 1rem; }
+.position-number { display: grid; place-items: center; flex-shrink: 0; width: 2.25rem; height: 2.25rem; border: 1px solid currentColor; border-radius: 50%; font-weight: 750; }
+.position-1 .position-heading { background: #faf0d9; color: #70501c; }
+.position-2 .position-heading { background: #eaf0f4; color: #374f64; }
+.position-3 .position-heading { background: #f5e9df; color: #794b2a; }
+.shared-label { font-size: .75rem; font-weight: 600; }
+.winner-list { list-style: none; padding: 0; margin: 0; }
+.winner-card { padding: 1.25rem; overflow-wrap: anywhere; }
+.winner-card + .winner-card { border-top: 1px solid var(--line); }
+.winner-card h5 { margin: 0; font-size: 1.2rem; line-height: 1.4; }
+.candidate-code { color: var(--muted); font-size: .85rem; margin-block: .5rem 1rem; }
+.candidate-code bdi { color: var(--ink); font-weight: 650; }
+.winner-affiliation { display: grid; gap: .75rem; margin: 0; }
+.winner-affiliation dt { font-size: .72rem; color: var(--muted); margin-bottom: .2rem; }
+.winner-affiliation dd { margin: 0; font-size: .95rem; line-height: 1.5; }
+@media (min-width: 680px) { .winner-affiliation { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .public-state { padding: clamp(1.5rem, 5vw, 3rem); text-align: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow-wrap: anywhere; }
 .public-state p { color: var(--muted); max-width: 45ch; margin-inline: auto; }
 .state-mark { display: inline-grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--soft); font-size: 2rem; }
