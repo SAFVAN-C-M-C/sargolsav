@@ -11,7 +11,7 @@ const competitions = [{ id: '1', name: 'Sargolsav 2026' }, { id: '2', name: 'Com
 const categories = [{ id: '9', name: 'Custom junior group', sort_order: 1 }, { id: '4', name: 'Senior scholars', sort_order: 10 }];
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body }) as Response;
 function api(list = competitions) {
-  return vi.fn(async (url: string) => url.endsWith('/events') ? response({ category: { id: url.split('/').at(-2), name: 'Category' }, events: [] }) : url === '/api/competitions' ? response({ competitions: list }) :
+  return vi.fn(async (url: string) => url.includes('/leaderboard/') ? response({ leaderboard: [] }) : url.endsWith('/events') ? response({ category: { id: url.split('/').at(-2), name: 'Category' }, events: [] }) : url === '/api/competitions' ? response({ competitions: list }) :
     response({ competition: url.includes('/2/') ? competitions[1] : competitions[0], categories: url.includes('/2/') ? [] : categories }));
 }
 function Probe() {
@@ -42,12 +42,12 @@ test('category deep links, tabs and browser back preserve competition context an
   expect(screen.getByTestId('path').textContent).toBe('/competitions/1/results/categories/4');
   expect(await screen.findByRole('heading', { name: 'Senior scholars' })).toBeTruthy();
   await user.click(screen.getByRole('link', { name: /Leaderboards$/ }));
-  expect(await screen.findByRole('heading', { name: 'Leaderboards are coming soon' })).toBeTruthy();
+  expect(await screen.findByRole('heading', { name: 'Overall unit rankings' })).toBeTruthy();
   expect(screen.getByTestId('path').textContent).toBe('/competitions/1/leaderboards');
   await user.click(screen.getByRole('button', { name: 'Browser back' }));
   expect(await screen.findByRole('heading', { name: 'Senior scholars' })).toBeTruthy();
   await screen.findByRole('heading', { name: 'Events are on the way' });
-  expect(fetcher).toHaveBeenCalledTimes(4);
+  expect(fetcher).toHaveBeenCalledTimes(5);
 });
 
 test('multiple competitions remain selectable, including a competition without categories', async () => {
@@ -66,7 +66,7 @@ test('direct category and leaderboard URLs render without visiting home', async 
   expect(await screen.findByRole('heading', { name: 'Custom junior group' })).toBeTruthy();
   cleanup();
   setup('/competitions/2/leaderboards');
-  expect(await screen.findByRole('heading', { name: 'Leaderboards are coming soon' })).toBeTruthy();
+  expect(await screen.findByRole('heading', { name: 'Overall unit rankings' })).toBeTruthy();
 });
 
 test('empty competitions and unknown routes have useful navigation', async () => {

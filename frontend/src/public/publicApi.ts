@@ -17,6 +17,16 @@ export interface PublishedResult {
   event_name: string; category_name: string;
   publication_id: string; published_at: string; winners: Winner[];
 }
+export type LeaderboardType = 'units' | 'candidates';
+export interface UnitRanking {
+  unit_id: string; unit_name: string; total_points: string; rank: string;
+  winning_entries: string; position_wins: Record<string, string>;
+}
+export interface CandidateRanking extends UnitRanking {
+  candidate_id: string; candidate_name: string; candidate_code: string;
+  madrasa_id?: string | null; madrasa_name?: string | null;
+}
+export type Ranking = UnitRanking | CandidateRanking;
 export class PublicApiError extends Error {
   constructor(public readonly status: number) { super('Public data unavailable'); }
 }
@@ -52,6 +62,16 @@ const optionalEntity = (value: unknown) => value === undefined || value === null
 const isWinner = (value: unknown): value is Winner => isRecord(value) && Number.isInteger(value.position) &&
   Number(value.position) > 0 && Number(value.position) <= 2147483647 && optionalText(value.candidate_code) &&
   optionalText(value.name) && optionalEntity(value.unit) && optionalEntity(value.madrasa);
+const positiveInteger = (value: unknown): value is string => typeof value === 'string' && /^[1-9][0-9]*$/.test(value);
+const unsignedInteger = (value: unknown): value is string => value === '0' || positiveInteger(value);
+function isRanking(value: unknown, type: LeaderboardType): value is Ranking {
+  if (!isRecord(value) || !positiveInteger(value.unit_id) || typeof value.unit_name !== 'string' ||
+      !unsignedInteger(value.total_points) || !positiveInteger(value.rank) || !unsignedInteger(value.winning_entries) ||
+      !isRecord(value.position_wins) || !Object.entries(value.position_wins).every(([position, count]) =>
+        positiveInteger(position) && unsignedInteger(count))) return false;
+  return type === 'units' || (positiveInteger(value.candidate_id) && typeof value.candidate_name === 'string' &&
+    typeof value.candidate_code === 'string' && optionalText(value.madrasa_id) && optionalText(value.madrasa_name));
+}
 
 // The cache belongs to the mounted public shell, never to authentication or a global singleton.
 // Each URL owns its response, so late requests cannot replace another competition's data.
@@ -67,7 +87,7 @@ export function createPublicApi(fetcher: typeof fetch) {
     (value): value is { competitions: Competition[] } => isRecord(value) &&
       Array.isArray(value.competitions) && value.competitions.every(isCompetition))).competitions);
   const catalogs = new Map<string, ReturnType<typeof resource<Catalog>>>();
-  // Event screens retain data only while mounted. Share in-flight reads, not old winners.
+  // Snapshot screens retain data only while mounted. Share in-flight reads, not old standings/winners.
   const pending = new Map<string, Promise<unknown>>();
   function freshGet<T>(url: string, validate: (value: unknown) => value is T): Promise<T> {
     const existing = pending.get(url);
@@ -94,6 +114,15 @@ export function createPublicApi(fetcher: typeof fetch) {
         isRecord(value) && isCompetition(value.category) && value.category.id === categoryId &&
         Array.isArray(value.events) && value.events.every((event) => isCategory(event) && isRecord(event) &&
           (event.status === 'published' || event.status === 'unpublished'))));
+    },
+    leaderboard(competitionId: string, categoryId: string | undefined, type: LeaderboardType) {
+      const base = `/api/competitions/${encodeURIComponent(competitionId)}`;
+      const scope = categoryId === undefined ? '' : `/categories/${encodeURIComponent(categoryId)}`;
+      return resource<Ranking[]>(async () => {
+        if (type === 'candidates' && categoryId === undefined) throw new PublicApiError(400);
+        return (await freshGet(`${base}${scope}/leaderboard/${type}`, (value): value is { leaderboard: Ranking[] } =>
+          isRecord(value) && Array.isArray(value.leaderboard) && value.leaderboard.every((row) => isRanking(row, type)))).leaderboard;
+      });
     },
     eventResult(competitionId: string, categoryId: string, eventId: string) {
       const base = `/api/competitions/${encodeURIComponent(competitionId)}/categories/${encodeURIComponent(categoryId)}/events/${encodeURIComponent(eventId)}/result`;

@@ -94,6 +94,33 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .winner-affiliation { display: grid; gap: .75rem; margin: 0; }
 .winner-affiliation dt { font-size: .72rem; color: var(--muted); margin-bottom: .2rem; }
 .winner-affiliation dd { margin: 0; font-size: .95rem; line-height: 1.5; }
+.leaderboard-controls { margin-block: 1.5rem; display: grid; gap: .75rem; min-width: 0; }
+.leaderboard-controls select { width: 100%; min-width: 0; min-height: 48px; padding: .7rem; color: var(--ink); background: var(--surface); border: 1px solid #9caea5; border-radius: .75rem; font: inherit; }
+.leaderboard-controls select:focus-visible, .ranking-achievements summary:focus-visible { outline: 3px solid #a5680b; outline-offset: 3px; }
+.ranking-types { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.ranking-types a { display: grid; place-items: center; min-height: 48px; border: 1px solid var(--line); border-radius: .75rem; background: var(--surface); text-decoration: none; font-weight: 650; }
+.ranking-types a[aria-current="page"] { background: var(--ink); color: white; border-color: var(--ink); }
+.leaderboard-note { color: var(--muted); font-size: .85rem; line-height: 1.6; margin-block: .25rem 1rem; }
+.ranking-list { list-style: none; display: grid; gap: .85rem; padding: 0; margin: 0; }
+.ranking-row { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: .75rem; padding: clamp(.85rem, 3vw, 1.5rem); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); min-width: 0; }
+.ranking-rank { display: grid; place-items: center; align-self: start; min-height: 2.5rem; border-radius: .75rem; background: var(--soft); font-weight: 750; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.rank-1 .ranking-rank { background: #faf0d9; color: #70501c; }
+.rank-2 .ranking-rank { background: #eaf0f4; color: #374f64; }
+.rank-3 .ranking-rank { background: #f5e9df; color: #794b2a; }
+.ranking-body { min-width: 0; overflow-wrap: anywhere; }
+.ranking-summary { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: .5rem 1rem; }
+.ranking-summary h3 { flex: 1 1 10rem; min-width: 0; margin: .25rem 0; font-size: 1.1rem; line-height: 1.5; }
+.ranking-score { max-width: 100%; flex: 0 1 auto; font-variant-numeric: tabular-nums; }
+.ranking-score strong { display: block; font-size: clamp(1rem, 4.5vw, 1.35rem); line-height: 1.4; }
+.ranking-score > span { color: var(--muted); font-size: .75rem; }
+.ranking-wins { color: var(--muted); font-size: .8rem; margin-block: .75rem 0; }
+.ranking-affiliation { margin-block: .75rem; }
+.ranking-achievements { margin-top: .5rem; font-size: .85rem; }
+.ranking-achievements summary { display: list-item; min-height: 44px; padding-block: .8rem; cursor: pointer; font-weight: 600; }
+.ranking-achievements dl { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: 0; padding-block: .25rem .75rem; }
+.ranking-achievements dt { color: var(--muted); font-size: .75rem; }
+.ranking-achievements dd { margin: .25rem 0 0; }
+@media (max-width: 360px) { .ranking-row { grid-template-columns: 2rem minmax(0, 1fr); gap: .5rem; } .ranking-rank { min-height: 2rem; } }
 @media (min-width: 680px) { .winner-affiliation { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .public-state { padding: clamp(1.5rem, 5vw, 3rem); text-align: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow-wrap: anywhere; }
 .public-state p { color: var(--muted); max-width: 45ch; margin-inline: auto; }

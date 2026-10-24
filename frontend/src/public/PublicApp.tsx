@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, Navigate, NavLink, Outlet, Route, Routes, useLocation, useOutletContext, useParams } from 'react-router-dom';
 import { createPublicApi, PublicApiError, usePublicResource } from './publicApi';
-import type { PublicApi } from './publicApi';
+import type { LeaderboardType, PublicApi } from './publicApi';
 import { EmptyState, ErrorState, LoadingCards } from './PublicStates';
 import { CategoryBrowser } from './CategoryBrowser';
-import { categoryPath, resultsPath } from './publicPaths';
+import { categoryPath, leaderboardPath, resultsPath } from './publicPaths';
+import { Leaderboards } from './Leaderboards';
 
 function PublicLayout({ api }: { api: PublicApi }) {
   const { pathname } = useLocation();
@@ -60,17 +61,17 @@ function CompetitionPicker({ id, leaderboards }: { id: string; leaderboards: boo
       to={leaderboards ? `/competitions/${competition.id}/leaderboards` : resultsPath(competition.id)}>{competition.name}</Link>)}</nav>;
 }
 
-function CompetitionPage({ leaderboards = false }: { leaderboards?: boolean }) {
+function CompetitionPage({ leaderboards = false, rankingType = 'units' }: { leaderboards?: boolean; rankingType?: LeaderboardType }) {
   const { competitionId = '', categoryId, eventId } = useParams();
   const api = useOutletContext<PublicApi>();
   const entry = api.catalog(competitionId);
   const state = usePublicResource(entry);
   const category = state.status === 'ready' ? state.data.categories.find((item) => item.id === categoryId) : undefined;
   useEffect(() => {
-    document.title = state.status === 'ready' ? `${category?.name ?? (leaderboards ? 'Leaderboards' : 'Results')} · ${state.data.competition.name} · Sargolsav` : 'Sargolsav';
-  }, [state, category, leaderboards, eventId]);
+    document.title = state.status === 'ready' ? `${leaderboards ? `${category?.name ?? 'Overall'} · ${rankingType === 'units' ? 'Unit' : 'Candidate'} rankings` : category?.name ?? 'Results'} · ${state.data.competition.name} · Sargolsav` : 'Sargolsav';
+  }, [state, category, leaderboards, eventId, rankingType]);
   return <>
-    <Link className="public-back" to={eventId && categoryId ? categoryPath(competitionId, categoryId) : categoryId ? resultsPath(competitionId) : '/'}>← {eventId ? 'All events' : categoryId ? 'All categories' : 'Home'}</Link>
+    <Link className="public-back" to={leaderboards && categoryId ? leaderboardPath(competitionId) : eventId && categoryId ? categoryPath(competitionId, categoryId) : categoryId ? resultsPath(competitionId) : '/'}>← {leaderboards && categoryId ? 'Overall rankings' : eventId ? 'All events' : categoryId ? 'All categories' : 'Home'}</Link>
     <p className="eyebrow">Zonal Madrassa Cultural Competition</p>
     <h1>{state.status === 'ready' ? state.data.competition.name : 'Competition'}</h1>
     <CompetitionPicker id={competitionId} leaderboards={leaderboards} />
@@ -78,7 +79,7 @@ function CompetitionPage({ leaderboards = false }: { leaderboards?: boolean }) {
     {state.status === 'loading' ? <LoadingCards /> : state.status === 'error' ?
       state.error instanceof PublicApiError && [400, 404].includes(state.error.status) ?
         <EmptyState title="Competition unavailable">This competition may no longer be active. <Link to="/">Browse available competitions</Link>.</EmptyState> : <ErrorState retry={entry.retry} /> :
-      leaderboards ? <EmptyState title="Leaderboards are coming soon">Unit and candidate standings will be available here in a future update.</EmptyState> :
+      leaderboards ? <Leaderboards competitionId={competitionId} categories={state.data.categories} categoryId={categoryId} type={rankingType} /> :
         <CategoryBrowser competitionId={competitionId} categories={state.data.categories} categoryId={categoryId} eventId={eventId} />}
   </>;
 }
@@ -96,6 +97,8 @@ export function PublicApp({ fetcher }: { fetcher: typeof fetch }) {
     <Route path="competitions/:competitionId/results/categories/:categoryId" element={<CompetitionPage />} />
     <Route path="competitions/:competitionId/results/categories/:categoryId/events/:eventId" element={<CompetitionPage />} />
     <Route path="competitions/:competitionId/leaderboards" element={<CompetitionPage leaderboards />} />
+    <Route path="competitions/:competitionId/leaderboards/categories/:categoryId/units" element={<CompetitionPage leaderboards />} />
+    <Route path="competitions/:competitionId/leaderboards/categories/:categoryId/candidates" element={<CompetitionPage leaderboards rankingType="candidates" />} />
     <Route path="*" element={<NotFound />} />
   </Route></Routes>;
 }
