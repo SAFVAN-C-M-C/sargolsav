@@ -8,6 +8,7 @@ import participantRouter from "../routes/participants.js";
 import catalogRouter from "../routes/catalog.js";
 import candidateRouter from "../routes/candidates.js";
 import resultDraftRouter from "../routes/resultDrafts.js";
+import resultLifecycleRouter, { publicResultRouter } from "../routes/resultLifecycle.js";
 import notFound from "../middleware/notFound.js";
 import errorHandler from "../middleware/errorHandler.js";
 
@@ -25,6 +26,8 @@ app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use("/api/health", healthRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/admin/competitions/:competitionId", resultDraftRouter);
+app.use("/api/admin/competitions/:competitionId", resultLifecycleRouter);
+app.use("/api/competitions/:competitionId", publicResultRouter);
 app.use("/api/admin/competitions/:competitionId/units", participantRouter);
 app.use("/api/admin/competitions/:competitionId/categories", catalogRouter);
 app.use("/api/admin/competitions/:competitionId/candidates", candidateRouter);

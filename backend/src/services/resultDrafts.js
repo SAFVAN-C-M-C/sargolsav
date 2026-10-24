@@ -4,8 +4,8 @@ import { resolveCandidate } from './candidates.js';
 export class ResultDraftError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
-const resultColumns = `id, competition_id, event_id, category_id, status, created_at, updated_at,
-  xmin::text || ':' || to_char(updated_at AT TIME ZONE 'UTC', 'YYYYMMDDHH24MISS.US') AS version`;
+export const resultVersion = "xmin::text || ':' || to_char(updated_at AT TIME ZONE 'UTC', 'YYYYMMDDHH24MISS.US')";
+const resultColumns = `id, competition_id, event_id, category_id, status, created_at, updated_at, ${resultVersion} AS version`;
 function invalid(message) { throw new ResultDraftError(400, message); }
 function id(value, label) {
   if (typeof value !== 'string' || !/^[1-9][0-9]{0,18}$/.test(value) || BigInt(value) > 9223372036854775807n) invalid(`${label} ID must be a positive bigint`);
@@ -147,3 +147,7 @@ export function createResultDraftService(db = { transaction }) {
     },
   };
 }
+
+// Shared validation and parent lock order for result lifecycle/correction services.
+export { id as validateResultId, text as validateResultText, object as validateResultObject,
+  path as validateResultPath, entriesPayload as validateDraftEntries, parents as lockResultParents };
