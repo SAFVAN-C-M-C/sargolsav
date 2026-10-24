@@ -5,6 +5,6 @@ export default function errorHandler(error, _request, response, next) {
     ? error.status : 500;
   const message = status === 413 ? 'Request body too large'
     : status < 500 ? 'Invalid request body' : 'Internal server error';
-  if (status === 500) console.error('API request failed');
+  if (status === 500) console.error(error);
   response.status(status).json({ error: message });
 }

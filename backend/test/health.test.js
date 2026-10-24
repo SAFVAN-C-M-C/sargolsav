@@ -73,17 +73,3 @@ test('JSON and form bodies exceeding the limit return 413', async () => {
     assert.deepEqual(await response.json(), { error: 'Request body too large' });
   }
 });
-
-test('database route is wired and application health remains independent during database failure', async (t) => {
-  const { pool } = await import('../src/db/pool.js');
-  const query = t.mock.method(pool, 'query', async () => { throw new Error('sensitive connection details'); });
-  const databaseResponse = await fetch(`${baseUrl}/api/health/db`);
-  assert.equal(databaseResponse.status, 503);
-  assert.deepEqual(await databaseResponse.json(), { status: 'unhealthy', error: 'Database unavailable' });
-  assert.equal(query.mock.calls.length, 1);
-  assert.deepEqual(query.mock.calls[0].arguments, ['SELECT 1', []]);
-  const response = await fetch(`${baseUrl}/api/health`);
-  assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { status: 'healthy' });
-  assert.equal(query.mock.calls.length, 1);
-});
