@@ -16,11 +16,11 @@ export function PublicLayout({ api }: { api: PublicApi }) {
   return <div className="public-app">
     <a className="skip-link" href="#public-content">Skip to content</a>
     <header className="public-header"><Link className="brand" to="/" aria-label="Sargolsav home">
-      <span className="brand-symbol" aria-hidden="true">✦</span><span>sargolsav<span className="brand-caption">CULTURE · COMMUNITY · EXCELLENCE</span></span>
-    </Link><span className="header-note">Zonal Madrassa<br />Cultural Competition</span></header>
+      <img className="brand-logo" src="/images/MSM_LOGO.png" alt="MSM logo" width={827} height={414} />
+    </Link><img className="header-logo" src="/images/MSM_LOGO.png" alt="MSM logo" width={827} height={414} /></header>
     <main ref={main} id="public-content" className="public-main" tabIndex={-1}>
       <Outlet context={api} />
     </main>
-    <footer className="public-footer"><span>Celebrating talent. Bringing us together.</span><Link to="/admin/login">Admin sign in</Link></footer>
+    <footer className="public-footer"><span>A product form SAFVAN</span><span>MSM TIRUR ZONE</span></footer>
   </div>;
 }

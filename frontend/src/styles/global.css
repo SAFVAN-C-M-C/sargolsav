@@ -46,10 +46,9 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .refresh-status p { flex: 1; margin: 0; overflow-wrap: anywhere; }
 .refresh-status button { flex-shrink: 0; min-height: 44px; font-size: .8rem; }
 .public-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid var(--line); }
-.brand { display: flex; align-items: center; gap: .65rem; text-decoration: none; color: var(--ink); font-size: 1.6rem; font-weight: 750; letter-spacing: -.07em; }
-.brand-symbol { display: grid; place-items: center; background: var(--ink); color: #f5e9b8; border-radius: .85rem; width: 2.8rem; height: 2.8rem; font-size: 1.9rem; }
-.brand-caption { display: block; font-size: .55rem; letter-spacing: .12em; margin-top: .2rem; }
-.header-note { font-size: .75rem; text-align: right; line-height: 1.5; color: var(--muted); }
+.brand { display: block; flex: 0 1 clamp(6.5rem, 28vw, 10rem); min-width: 0; }
+.brand-logo { display: block; width: 100%; height: auto; }
+.header-logo { display: block; width: clamp(6.5rem, 28vw, 10rem); min-width: 0; height: auto; object-fit: contain; }
 .public-main { flex: 1; padding-block: 2rem 3.5rem; min-width: 0; }
 .public-main:focus { outline: none; }
 .public-main h1 { font-size: clamp(2rem, 6vw, 3.6rem); letter-spacing: -.045em; max-width: 23ch; }
@@ -132,7 +131,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .state-mark { display: inline-grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--soft); font-size: 2rem; }
 .public-state a { display: inline-block; padding-block: .6rem; }
 .public-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; padding-block: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .75rem; }
-.public-footer a { display: inline-flex; align-items: center; min-height: 44px; }
+.public-footer span { overflow-wrap: anywhere; }
 .competition-picker { display: flex; flex-wrap: wrap; gap: .5rem; }
 .competition-picker a { display: inline-flex; align-items: center; min-height: 44px; padding: .6rem .9rem; border: 1px solid var(--line); border-radius: .75rem; text-decoration: none; overflow-wrap: anywhere; max-width: 100%; }
 .competition-picker a[aria-current] { background: var(--ink); color: white; border-color: var(--ink); }
@@ -142,7 +141,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 @keyframes shimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } .category-card { transition: none; } }
 @media (min-width: 680px) { .category-grid, .loading-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .public-main { padding-block: 3rem 5rem; } }
-@media (max-width: 360px) { .header-note, .public-tabs a > span { display: none; } .public-tabs a { font-size: .85rem; } .category-card { padding: 1rem; gap: .75rem; } }
+@media (max-width: 360px) { .public-tabs a > span { display: none; } .public-tabs a { font-size: .85rem; } .category-card { padding: 1rem; gap: .75rem; } }
 .login-card { max-width: 28rem; margin: 0 auto; }
 .login-card h1, .admin-card h1 { font-size: clamp(2rem, 7vw, 3rem); }
 .status-card h2 { margin-top: 0; }
