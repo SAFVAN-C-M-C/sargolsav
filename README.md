@@ -25,6 +25,10 @@ TKT-09E adds private event-result draft entry, exact candidate lookup/selection 
 version-conflict protection. See the [result entry guide](frontend/RESULT_ENTRY.md)
 for status navigation, API integration, Back/Forward guards and manual checks.
 
+TKT-09F adds result review, confirmed publication and separate private correction
+workspaces. See the [result lifecycle guide](frontend/RESULT_LIFECYCLE.md) for routes,
+API contracts, concurrency safeguards, verification and remaining limitations.
+
 TKT-08D adds visibility-aware public polling, retained-data background retries,
 and focused mobile improvements. See the [live-update guide](docs/TKT-08D-public-live-updates.md)
 for timing, request optimization, error behavior and manual checks.
@@ -246,8 +250,9 @@ refreshes the token once, then returns to login if still rejected. Network/serve
 errors show a retryable unavailable state. The admin dashboard offers competition
 selection, overview counts, competition creation/editing, lifecycle actions and
 shared points configuration, unit/optional Madrassa management, and category/event
-management. Results support private draft entry and candidate resolution; reviewing,
-publishing, corrections and shared-position overrides are not available in the UI.
+management. Results support private draft entry, candidate resolution, review,
+confirmed publication and private corrections. Shared-position override management
+is not available in the UI.
 The public `/` page stays accessible
 without Firebase configuration.
 

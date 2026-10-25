@@ -12,6 +12,8 @@ See [Category and event management](CATEGORY_EVENT_MANAGEMENT.md) for configured
 ordering, scoped forms, deletion protection, APIs and manual checks.
 See [Result draft entry](RESULT_ENTRY.md) for exact candidate lookup, versioned
 drafts, production navigation blocking, API integration and manual verification.
+See [Result review, publication and corrections](RESULT_LIFECYCLE.md) for lifecycle
+screens, frozen public winners, private correction workspaces and conflict handling.
 
 ```text
 src/

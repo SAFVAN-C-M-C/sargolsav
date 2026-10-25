@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider, useLocation, useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import type { AuthClient, AuthUser } from '../types/auth';
 import type { Candidate, ResultDraft, ResultStatus, WinnerPayload } from '../types/adminResults';
 
 const routers: ReturnType<typeof createMemoryRouter>[] = [];
+beforeAll(async () => { await import('../pages/admin/AdminResults'); });
 afterEach(() => { cleanup(); routers.splice(0).forEach((router) => router.dispose()); });
 const reply = (body: unknown, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => body }) as Response;
 const candidate = (code = '001'): Candidate => ({ id: '101', competition_id: '1', category_id: '11', candidate_code: code, name: 'Registered winner', unit_id: '21', madrasa_id: '31' });
@@ -42,6 +43,13 @@ function setup({ path = detail, initialEntries, draft: initialDraft = savedDraft
     if (path.endsWith('/settings')) return reply({ settings: { competition_id: competitionId, position_points: points } });
     if (path.endsWith('/units')) return reply({ units: [{ id: '21', competition_id: competitionId, name: 'North Unit' }, { id: '22', competition_id: competitionId, name: 'South Unit' }] });
     if (path.endsWith('/madrasas')) return reply({ madrasas: path.includes('/units/21/') ? [{ id: '31', competition_id: competitionId, unit_id: '21', name: 'Registered Madrassa' }] : [] });
+    if (/\/categories\/11$/.test(path)) return reply({ category: { id: '11', competition_id: competitionId, name: 'Entry category', sort_order: 10 } });
+    if (/\/events\/[0-9]+$/.test(path)) return reply({ event: { id: path.split('/')[8], competition_id: competitionId, category_id: '11', name: 'Event', sort_order: 0 } });
+    if (path.endsWith('/result')) {
+      if (path.startsWith('/api/competitions/')) return reply({ result: { competition_id: '1', category_id: '11', event_id: path.split('/')[7], event_name: 'Event', category_name: 'Entry category', publication_id: '99', published_at: '2026-10-25T00:00:00Z', winners: [] } });
+      const eventId = path.split('/')[8]; const status = statuses.find((row) => row.event_id === eventId)?.status;
+      return reply({ result: { ...savedDraft(), event_id: eventId, status, reviewed_by: 'admin', reviewed_at: '2026-10-25T00:00:00Z', published_by: status === 'published' ? 'admin' : null, published_at: status === 'published' ? '2026-10-25T00:00:00Z' : null, active_correction_id: null, entries: [] } });
+    }
     if (path.includes('/candidates/lookup')) {
       const code = new URL(path, 'http://local').searchParams.get('candidate_code');
       return code === '001' ? reply({ candidate: candidate() }) : reply({ error: 'Candidate not found' }, 404);
@@ -167,7 +175,7 @@ test('version conflicts retain edits, disable blind retry and require explicit c
 
 test.each(['Reviewed', 'Published'])('%s events show protection without requesting draft endpoints', async (status) => {
   const { user, fetcher } = setup({ path: '/admin/results?competition=1' }); await user.click(await screen.findByRole('link', { name: `${status} event ${status}` }));
-  await screen.findByRole('heading', { name: `${status} result — draft editing unavailable` }); expect(fetcher.mock.calls.some(([path]) => String(path).endsWith('/result-draft'))).toBe(false);
+  await screen.findByRole('region', { name: status === 'Reviewed' ? 'Result review' : 'Current public result' }); expect(fetcher.mock.calls.some(([path]) => String(path).endsWith('/result-draft'))).toBe(false);
 });
 
 test('shared-position drafts are protected from ordinary saving', async () => {
@@ -256,7 +264,7 @@ test('late save responses cannot change another selected event', async () => {
   vi.spyOn(window, 'confirm').mockReturnValue(true); let done!: (response: Response) => void;
   const { user } = setup({ override: async (_path, options) => options.method === 'PUT' ? new Promise((resolve) => { done = resolve; }) : undefined });
   await user.click(await screen.findByRole('button', { name: 'Save draft' })); await waitFor(() => expect(done).toBeTypeOf('function'));
-  await user.click(screen.getByRole('link', { name: 'Reviewed event Reviewed' })); await screen.findByRole('heading', { name: 'Reviewed result — draft editing unavailable' });
+  await user.click(screen.getByRole('link', { name: 'Reviewed event Reviewed' })); await screen.findByRole('region', { name: 'Result review' });
   await act(async () => done(reply({ draft: savedDraft() }))); expect(screen.queryByText('Draft saved.')).toBeNull(); expect(screen.getByTestId('location').textContent).toContain('event=113');
 });
 

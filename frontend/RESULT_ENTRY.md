@@ -1,5 +1,8 @@
 # Admin result entry and candidate selection (TKT-09E)
 
+TKT-09F extends these components with [review, publication and private corrections](RESULT_LIFECYCLE.md).
+The ordinary draft endpoint restrictions below remain in force.
+
 ## Screens and routes
 
 `/admin/results` is a private, selected-competition results browser. It reads
@@ -23,7 +26,7 @@ show unavailable/error messages and do not expose unrelated drafts.
 An event without a draft shows **Initialize draft**. Merely browsing does not
 create records. The explicit POST initializes an empty draft or retrieves the
 existing draft unchanged, including if another admin initialized it first. Reviewed
-or published status rows display a protection panel without calling draft endpoints.
+or published status rows now open the lifecycle workspace without calling ordinary draft endpoints.
 A raced 409 from draft GET also locks entry. Drafts with override entries/shared
 positions are protected instead of offering ordinary editing.
 
@@ -105,7 +108,8 @@ Validation, identity conflicts and network failures preserve entries. A stale
 version, non-draft or shared-position 409 prevents blind resubmission. **Reload
 draft** deliberately fetches the latest snapshot/options and confirms before
 throwing away dirty entries. There is no automatic fetch-new-version-and-overwrite,
-force-save, review, publishing, correction or shared-position override workflow.
+force-save or shared-position override workflow. Review, publication and correction
+actions use the separate lifecycle APIs documented in the TKT-09F guide.
 A concurrent lifecycle transition remains protected by the backend even if status
 metadata was stale. Ambiguous network writes are not automatically repeated; reload
 and reconcile deliberately before retrying if the server may have committed.
