@@ -3,6 +3,11 @@
 See the [frontend structure guide](frontend/README.md) for source folders,
 component grouping, import conventions, and frontend verification commands.
 
+TKT-09A adds the protected admin dashboard, URL-based competition selection,
+read-only overview counts and management navigation placeholders. See the
+[admin dashboard guide](frontend/ADMIN_DASHBOARD.md) for routes, API dependencies,
+component structure, limitations and manual verification.
+
 TKT-08D adds visibility-aware public polling, retained-data background retries,
 and focused mobile improvements. See the [live-update guide](docs/TKT-08D-public-live-updates.md)
 for timing, request optimization, error behavior and manual checks.
@@ -111,7 +116,7 @@ the scoped gRPC security override, its compatibility limits, and when to remove 
 ## Structure and scope
 
 - `frontend/src`: React and TypeScript entry point, public competition/category browser, admin login,
-  protected placeholder, Firebase Auth provider, and mobile-first styles.
+  protected dashboard, Firebase Auth provider, and mobile-first styles.
 - `backend/src/routes`: HTTP route registration.
 - `backend/src/controllers`: HTTP request/response handling.
 - `backend/src/middleware`: API 404 catcher and error handling.
@@ -221,8 +226,9 @@ sign-in, the Firebase SDK persists the session locally and the frontend sends a
 current ID token to `GET /api/admin/me`. Only a 200 response containing a matching
 verified UID and `admin: true` opens `/admin`. A 403 shows access denied; a 401
 refreshes the token once, then returns to login if still rejected. Network/server
-errors show a retryable unavailable state. The admin dashboard is a placeholder;
-competition management UI is not implemented. The public `/` page stays accessible
+errors show a retryable unavailable state. The admin dashboard offers competition
+selection and read-only overview counts; management screens are explicit placeholders.
+The public `/` page stays accessible
 without Firebase configuration.
 
 To check the flow manually, try a valid admin account, a signed-in non-admin

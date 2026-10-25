@@ -2,11 +2,14 @@
 
 The React frontend groups files by responsibility, with related UI grouped by feature.
 
+See [Admin dashboard foundation](ADMIN_DASHBOARD.md) for protected routes, selected
+competition context, component structure, API dependencies and manual checks.
+
 ```text
 src/
   api/          Backend requests, response validation, and API errors
   components/
-    admin/      Admin route protection and authentication status panels
+    admin/      Route protection, dashboard overview and reusable status panels
     common/     Shared loading, empty, error, and refresh states
     public/
       leaderboards/  Standings and ranking lists

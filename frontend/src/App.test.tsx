@@ -158,7 +158,7 @@ test('backend failure shows retryable unavailable state, then restores access', 
   expect(screen.queryByRole('heading', { name: 'Sargolsav admin' })).toBeNull();
   await user.click(screen.getByRole('button', { name: 'Try again' }));
   await screen.findByRole('heading', { name: 'Sargolsav admin' });
-  expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(fetcher.mock.calls.filter(([path]) => path === '/api/admin/me')).toHaveLength(2);
 });
 
 test('backend 401 after refresh signs out, while verified admins leave login', async () => {
