@@ -132,8 +132,8 @@ export function AuthProvider({ children, client = firebaseAuthClient, fetcher = 
       signal.throwIfAborted();
       if (!current()) throw new Error('Session changed');
       return fetcher(path, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', ...(options ? { 'Content-Type': 'application/json' } : {}) },
-        ...(options ? { method: options.method, body: JSON.stringify(options.body) } : {}),
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', ...(options && options.method !== 'DELETE' ? { 'Content-Type': 'application/json' } : {}) },
+        ...(options ? { method: options.method, ...(options.method !== 'DELETE' ? { body: JSON.stringify(options.body) } : {}) } : {}),
         cache: 'no-store', signal,
       });
     };
@@ -155,7 +155,7 @@ export function AuthProvider({ children, client = firebaseAuthClient, fetcher = 
         }
         throw new AdminApiError(response.status, message);
       }
-      return await response.json();
+      return response.status === 204 ? undefined : await response.json();
     } catch (error) {
       if (current() && isInvalidSession(error)) {
         sessionRef.current += 1;

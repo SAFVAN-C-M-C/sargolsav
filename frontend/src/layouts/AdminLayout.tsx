@@ -28,6 +28,7 @@ export function AdminLayout() {
   const selectCompetition = (id: string) => {
     if (id === (params.get('competition') ?? '') || !mayLeave()) return;
     const next = new URLSearchParams(params);
+    next.delete('unit'); next.delete('madrasa'); next.delete('participantForm');
     if (id) next.set('competition', id); else next.delete('competition');
     setParams(next);
   };

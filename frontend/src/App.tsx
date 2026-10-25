@@ -11,6 +11,7 @@ import { adminDestinations } from './constants/adminNavigation';
 import { AdminPlaceholder } from './pages/admin/AdminPlaceholder';
 import { AdminCompetitions } from './pages/admin/AdminCompetitions';
 import { AdminSettings } from './pages/admin/AdminSettings';
+import { AdminUnits } from './pages/admin/AdminUnits';
 
 function AdminShell({ client, fetcher }: { client: AuthClient; fetcher: typeof fetch }) {
   return <AuthProvider client={client} fetcher={fetcher}><div className="admin-auth-shell"><Outlet /></div></AuthProvider>;
@@ -29,7 +30,8 @@ export function AppRoutes({ client = firebaseAuthClient, fetcher = fetch }: {
             <Route index element={<AdminDashboard />} />
             <Route path="competitions" element={<AdminCompetitions />} />
             <Route path="settings" element={<AdminSettings />} />
-            {adminDestinations.filter(([path]) => path && path !== 'competitions' && path !== 'settings').map(([path, title]) => <Route key={path} path={path} element={<AdminPlaceholder title={title} />} />)}
+            <Route path="units" element={<AdminUnits />} />
+            {adminDestinations.filter(([path]) => path && path !== 'competitions' && path !== 'settings' && path !== 'units').map(([path, title]) => <Route key={path} path={path} element={<AdminPlaceholder title={title} />} />)}
             <Route path="*" element={<AdminPlaceholder title="Admin page not found" />} />
           </Route>
         </Route>

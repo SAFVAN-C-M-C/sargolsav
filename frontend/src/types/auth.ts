@@ -13,10 +13,10 @@ export type AuthState =
   | { status: 'loading' | 'unauthenticated' | 'forbidden' | 'unavailable' }
   | { status: 'authorized'; identity: AdminIdentity };
 
-export interface AdminRequestOptions {
+export type AdminRequestOptions = {
   method: 'POST' | 'PATCH' | 'PUT';
   body: unknown;
-}
+} | { method: 'DELETE'; body?: never };
 
 export interface AuthContextValue {
   state: AuthState;

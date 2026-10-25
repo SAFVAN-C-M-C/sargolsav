@@ -258,3 +258,17 @@ main.dashboard-main { width: 100%; max-width: 80rem; padding: clamp(1rem, 3vw, 3
 .points-row > div { display: grid; gap: .5rem; min-width: 0; }
 .points-row button { margin-bottom: .4rem; }
 @media (max-width: 480px) { .points-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } .points-row button { grid-column: 1 / -1; } .admin-form .actions button { width: 100%; } }
+
+/* Scoped participant lists and actions wrap long names without horizontal scrolling. */
+.participant-section-heading { margin-block: 1.25rem; }
+.participant-section-heading h3 { min-width: 0; overflow-wrap: anywhere; }
+.participant-list { display: grid; gap: .65rem; list-style: none; padding: 0; margin-block: 1rem 1.5rem; }
+.participant-list li { min-width: 0; }
+.participant-list a { display: flex; align-items: center; min-height: 48px; padding: .85rem 1rem; border: 1px solid var(--line); border-radius: .75rem; background: var(--surface); overflow-wrap: anywhere; }
+.participant-list a[aria-current] { border-color: var(--accent); background: var(--soft); font-weight: 700; }
+.participant-action-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1rem; border: 1px solid var(--accent); border-radius: .5rem; font-weight: 650; overflow-wrap: anywhere; }
+.participant-detail { min-width: 0; }
+.participant-detail h3, .participant-detail h4 { overflow-wrap: anywhere; }
+.participant-detail h4 { font-size: 1.1rem; margin-block: .5rem; }
+.button-danger { background: #a32929; border-color: #a32929; }
+.button-danger:hover:not(:disabled) { background: #7b1d1d; }
