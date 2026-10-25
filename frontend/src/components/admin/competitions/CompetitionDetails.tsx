@@ -1,3 +1,4 @@
+import { ActionsDiv, AdminFormForm, AdminLifecycleDiv, AdminStatusSpan, AdminSuccessP, AppButton, ButtonSecondaryButton, DashboardPanelSection, FormErrorP, FormInput, FieldLabel, SectionHeadingDiv, SrOnlyLegend } from '../../../styles/components';
 import { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { AdminCompetition } from '../../../api/adminDashboardApi';
@@ -35,10 +36,10 @@ function CompetitionEditor({ initial, reload }: { initial: AdminCompetition; rel
     clean(); setSaved(competition); setName(competition.name); setCode(competition.code);
     upsertCompetition(competition); setSuccess(message);
   };
-  return <section className="dashboard-panel" aria-labelledby="competition-details-title">
-    <div className="section-heading"><h3 id="competition-details-title">Competition details</h3><span className={`admin-status status-${saved.status}`}>{saved.status}</span></div>
-    <p className="admin-context">{saved.name}</p>
-    <form className="admin-form" aria-label="Edit competition" noValidate onSubmit={async (event) => {
+  return <DashboardPanelSection aria-labelledby="competition-details-title">
+    <SectionHeadingDiv><h3 id="competition-details-title">Competition details</h3><AdminStatusSpan status={saved.status}>{saved.status}</AdminStatusSpan></SectionHeadingDiv>
+    <p>{saved.name}</p>
+    <AdminFormForm aria-label="Edit competition" noValidate onSubmit={async (event) => {
       event.preventDefault(); setSuccess('');
       const error = validateCompetition(name, code); setValidation(error);
       if (error || !dirty) return;
@@ -47,26 +48,26 @@ function CompetitionEditor({ initial, reload }: { initial: AdminCompetition; rel
       if (result) accept(result.data, 'Competition details saved.');
     }}>
       <fieldset disabled={mutation.pending}>
-        <legend className="sr-only">Editable competition details</legend>
-        <label htmlFor="edit-name">Name</label><input id="edit-name" value={name} onChange={(event) => setName(event.target.value)} aria-describedby={validation ? 'edit-validation' : undefined} />
-        <label htmlFor="edit-code">Code</label><input id="edit-code" value={code} onChange={(event) => setCode(event.target.value)} aria-describedby={validation ? 'edit-validation' : undefined} />
-        {validation && <p id="edit-validation" className="form-error" role="alert">{validation}</p>}
-        <button type="submit" disabled={!dirty}>{mutation.pending ? 'Saving…' : 'Save details'}</button>
+        <SrOnlyLegend>Editable competition details</SrOnlyLegend>
+        <FieldLabel htmlFor="edit-name">Name</FieldLabel><FormInput id="edit-name" value={name} onChange={(event) => setName(event.target.value)} aria-describedby={validation ? 'edit-validation' : undefined} />
+        <FieldLabel htmlFor="edit-code">Code</FieldLabel><FormInput id="edit-code" value={code} onChange={(event) => setCode(event.target.value)} aria-describedby={validation ? 'edit-validation' : undefined} />
+        {validation && <FormErrorP id="edit-validation" role="alert">{validation}</FormErrorP>}
+        <AppButton type="submit" disabled={!dirty}>{mutation.pending ? 'Saving…' : 'Save details'}</AppButton>
       </fieldset>
-    </form>
-    <div className="admin-lifecycle"><h3>Competition status</h3><p>Activation makes a competition available to public viewers. Archiving removes it from active public listings. Other active competitions are not changed. Returning to draft is not supported.</p>
+    </AdminFormForm>
+    <AdminLifecycleDiv><h3>Competition status</h3><p>Activation makes a competition available to public viewers. Archiving removes it from active public listings. Other active competitions are not changed. Returning to draft is not supported.</p>
       {dirty && <p>Save or reload your details before changing status.</p>}
-      <div className="actions">{lifecycleActions[saved.status].map((status) => <button type="button" className="button-secondary" key={status} disabled={mutation.pending || dirty} onClick={async () => {
+      <ActionsDiv>{lifecycleActions[saved.status].map((status) => <ButtonSecondaryButton type="button" key={status} disabled={mutation.pending || dirty} onClick={async () => {
         if (!window.confirm(`Change ${saved.name} from ${saved.status} to ${status}? This changes its public availability.`)) return;
         setSuccess('');
         const result = await mutation.run((signal) => competitionApi.status(request, saved.id, status, signal));
         if (result) accept(result.data, `Competition is now ${result.data.status}.`);
-      }}>{status === 'active' ? 'Activate competition' : 'Archive competition'}</button>)}</div>
-    </div>
-    {mutation.error && <p role="alert" className="form-error">{mutation.error}</p>}
-    {success && <p role="status" className="admin-success">{success}</p>}
-    <button type="button" className="button-secondary" disabled={mutation.pending} onClick={() => {
+      }}>{status === 'active' ? 'Activate competition' : 'Archive competition'}</ButtonSecondaryButton>)}</ActionsDiv>
+    </AdminLifecycleDiv>
+    {mutation.error && <FormErrorP role="alert">{mutation.error}</FormErrorP>}
+    {success && <AdminSuccessP role="status">{success}</AdminSuccessP>}
+    <ButtonSecondaryButton type="button" disabled={mutation.pending} onClick={() => {
       if (!dirty || window.confirm('Discard unsaved details and reload?')) { clean(); reload(); }
-    }}>Reload details</button>
-  </section>;
+    }}>Reload details</ButtonSecondaryButton>
+  </DashboardPanelSection>;
 }

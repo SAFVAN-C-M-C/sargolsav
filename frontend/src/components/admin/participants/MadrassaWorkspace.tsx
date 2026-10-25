@@ -1,3 +1,4 @@
+import { AdminSuccessP, DashboardPanelDiv, EyebrowP, ParticipantActionLinkLink, ParticipantListUl, SectionHeadingParticipantSectionHeadingDiv } from '../../../styles/components';
 import { useCallback, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { madrassasApi } from '../../../api/participantsApi';
@@ -17,16 +18,16 @@ export function MadrassaWorkspace({ competitionId, unitId, unitName }: { competi
   const creating = params.get('participantForm') === 'new-madrasa';
   const madrassaId = params.get('madrasa');
   return <section aria-labelledby="madrassas-title">
-    <div className="section-heading participant-section-heading"><h3 id="madrassas-title">Madrassas in {unitName}</h3>
-      {!creating && <Link className="participant-action-link" to={{ pathname: '/admin/units', search: participantSearch(params, { participantForm: 'new-madrasa', madrasa: null }) }}>New Madrassa</Link>}
-    </div>
-    {success && <p role="status" className="admin-success">{success}</p>}
+    <SectionHeadingParticipantSectionHeadingDiv><h3 id="madrassas-title">Madrassas in {unitName}</h3>
+      {!creating && <ParticipantActionLinkLink to={{ pathname: '/admin/units', search: participantSearch(params, { participantForm: 'new-madrasa', madrasa: null }) }}>New Madrassa</ParticipantActionLinkLink>}
+    </SectionHeadingParticipantSectionHeadingDiv>
+    {success && <AdminSuccessP role="status">{success}</AdminSuccessP>}
     {state.status === 'loading' && <DashboardLoading>Loading Madrassas…</DashboardLoading>}
     {state.status === 'error' && <DashboardError retry={retry}>Madrassas could not be loaded. Check your connection and try again.</DashboardError>}
     {state.status === 'ready' && <><p>{state.data.length} {state.data.length === 1 ? 'Madrassa' : 'Madrassas'}</p>
-      {state.data.length ? <ul className="participant-list" aria-label="Madrassas">{state.data.map((madrassa) => <li key={madrassa.id}><Link aria-current={!creating && madrassa.id === madrassaId ? 'page' : undefined}
-        to={{ pathname: '/admin/units', search: participantSearch(params, { madrasa: madrassa.id, participantForm: null }) }}>{madrassa.name}</Link></li>)}</ul> :
-        <div className="dashboard-panel"><h4>No Madrassas yet</h4><p>This unit has no Madrassas. Madrassas are optional.</p></div>}
+      {state.data.length ? <ParticipantListUl aria-label="Madrassas">{state.data.map((madrassa) => <li key={madrassa.id}><Link aria-current={!creating && madrassa.id === madrassaId ? 'page' : undefined}
+        to={{ pathname: '/admin/units', search: participantSearch(params, { madrasa: madrassa.id, participantForm: null }) }}>{madrassa.name}</Link></li>)}</ParticipantListUl> :
+        <DashboardPanelDiv><h4>No Madrassas yet</h4><p>This unit has no Madrassas. Madrassas are optional.</p></DashboardPanelDiv>}
     </>}
     {creating ? <ParticipantNameForm kind="Madrassa" cancelSearch={participantSearch(params, { participantForm: null })}
       save={(name, signal) => madrassasApi(request, competitionId, unitId).save(name, signal)} onSaved={(madrassa) => {
@@ -54,9 +55,9 @@ function MadrassaDetails({ competitionId, unitId, unitName, madrassaId, onChange
     save={(name, signal) => madrassasApi(request, competitionId, unitId).save(name, signal, madrassaId)} onSaved={() => {
       onChanged(); retry(); setParams(participantSearch(params, { participantForm: null }));
     }} />;
-  return <div className="dashboard-panel"><p className="eyebrow">Madrassa details</p><h4>{madrassa.name}</h4><p>Parent unit: {unitName}</p>
+  return <DashboardPanelDiv><EyebrowP>Madrassa details</EyebrowP><h4>{madrassa.name}</h4><p>Parent unit: {unitName}</p>
     <ParticipantActions kind="Madrassa" name={madrassa.name} parentName={unitName}
       editSearch={participantSearch(params, { participantForm: 'madrasa' })}
       remove={(signal) => madrassasApi(request, competitionId, unitId).remove(madrassaId, signal)} onDeleted={onDeleted} />
-  </div>;
+  </DashboardPanelDiv>;
 }

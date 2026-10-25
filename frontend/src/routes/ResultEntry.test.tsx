@@ -259,7 +259,8 @@ test('a late lookup cannot populate a different external code', async () => {
 test('background auth checks and unrelated renders preserve winner edits', async () => {
   const { user } = setup(); const row = await newWinner(user); await act(async () => { window.dispatchEvent(new Event('focus')); });
   expect((row.getByLabelText('Candidate name') as HTMLInputElement).value).toBe('New winner');
-  await user.click(screen.getByRole('button', { name: 'Menu' })); expect((row.getByLabelText('External candidate ID') as HTMLInputElement).value).toBe('007');
+  // jsdom does not apply the media query that reveals the mobile menu button.
+  await user.click(screen.getByText('Menu', { selector: 'button' })); expect((row.getByLabelText('External candidate ID') as HTMLInputElement).value).toBe('007');
 });
 
 test('late save responses cannot change another selected event', async () => {

@@ -61,7 +61,7 @@ test('Leaderboards entry defaults to overall units, preserves backend ordering, 
   const rows = await rankingRows();
   expect(screen.getByTestId('path').textContent).toBe(base);
   expect(rows.map((row) => within(row).getByRole('heading').textContent)).toEqual(['Zulu Unit', 'Alpha Unit', 'Zero Unit']);
-  expect(rows.map((row) => row.querySelector('.ranking-rank')?.textContent)).toEqual(['Rank 1', 'Rank 1', 'Rank 3']);
+  expect(rows.map((row) => within(row).getByText('Rank').parentElement?.textContent)).toEqual(['Rank 1', 'Rank 1', 'Rank 3']);
   expect(rows.map((row) => within(row).getByText(/^(18014398509481982|0)$/).textContent)).toEqual(['18014398509481982', '18014398509481982', '0']);
   expect(within(rows[0]).getByText(/Shared rank/)).toBeTruthy();
   expect(within(rows[2]).getByText('0 winning entries')).toBeTruthy();

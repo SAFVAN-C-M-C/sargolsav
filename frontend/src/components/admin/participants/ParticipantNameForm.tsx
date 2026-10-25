@@ -1,5 +1,6 @@
+import { AdminFormDashboardPanelForm, BackLinkLink, AppButton, FormErrorP, FormInput, FieldLabel, SrOnlyLegend } from '../../../styles/components';
 import { useId, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import { participantNameError } from '../../../api/participantsApi';
 import { useAdminMutation } from '../../../hooks/useAdminMutation';
 import { useUnsavedAdminForm } from '../../../hooks/useUnsavedAdminForm';
@@ -17,7 +18,7 @@ export function ParticipantNameForm({ kind, initialName = '', editing = false, c
   const dirty = name !== initialName;
   const clean = useUnsavedAdminForm(dirty || mutation.pending);
   const title = `${editing ? 'Edit' : 'Create'} ${kind}`;
-  return <form className="admin-form dashboard-panel" aria-label={title} noValidate onSubmit={async (event) => {
+  return <AdminFormDashboardPanelForm aria-label={title} noValidate onSubmit={async (event) => {
     event.preventDefault();
     if (mutation.pending) return;
     const error = participantNameError(name); setValidation(error);
@@ -28,13 +29,13 @@ export function ParticipantNameForm({ kind, initialName = '', editing = false, c
     <h3>{title}</h3>
     {kind === 'unit' && !editing && <p>Madrassas are optional. Create the unit first; you can add Madrassas later.</p>}
     <fieldset disabled={mutation.pending}>
-      <legend className="sr-only">{title} details</legend>
-      <label htmlFor={inputId}>{kind === 'unit' ? 'Unit' : 'Madrassa'} name</label>
-      <input id={inputId} value={name} required aria-invalid={Boolean(validation)} aria-describedby={validation ? `${inputId}-error` : undefined} onChange={(event) => setName(event.target.value)} />
-      {validation && <p id={`${inputId}-error`} role="alert" className="form-error">{validation}</p>}
-      <button type="submit" disabled={editing && !dirty}>{mutation.pending ? 'Saving…' : `${editing ? 'Save' : 'Create'} ${kind}`}</button>
+      <SrOnlyLegend>{title} details</SrOnlyLegend>
+      <FieldLabel htmlFor={inputId}>{kind === 'unit' ? 'Unit' : 'Madrassa'} name</FieldLabel>
+      <FormInput id={inputId} value={name} required aria-invalid={Boolean(validation)} aria-describedby={validation ? `${inputId}-error` : undefined} onChange={(event) => setName(event.target.value)} />
+      {validation && <FormErrorP id={`${inputId}-error`} role="alert">{validation}</FormErrorP>}
+      <AppButton type="submit" disabled={editing && !dirty}>{mutation.pending ? 'Saving…' : `${editing ? 'Save' : 'Create'} ${kind}`}</AppButton>
     </fieldset>
-    {mutation.error && <p role="alert" className="form-error">{mutation.error}</p>}
-    <Link className="back-link" to={{ pathname: '/admin/units', search: cancelSearch }}>Cancel</Link>
-  </form>;
+    {mutation.error && <FormErrorP role="alert">{mutation.error}</FormErrorP>}
+    <BackLinkLink to={{ pathname: '/admin/units', search: cancelSearch }}>Cancel</BackLinkLink>
+  </AdminFormDashboardPanelForm>;
 }

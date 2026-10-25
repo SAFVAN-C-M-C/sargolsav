@@ -1,3 +1,4 @@
+import { AdminSuccessP, CatalogListOrderSpan, DashboardPanelDiv, EyebrowP, ParticipantActionLinkLink, ParticipantListCatalogListUl, SectionHeadingParticipantSectionHeadingDiv } from '../../../styles/components';
 import { useCallback, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { eventsApi } from '../../../api/catalogApi';
@@ -17,16 +18,16 @@ export function EventWorkspace({ competitionId, categoryId, categoryName }: { co
   const creating = params.get('catalogForm') === 'new-event';
   const eventId = params.get('event');
   return <section aria-labelledby="events-title">
-    <div className="section-heading participant-section-heading"><h3 id="events-title">Events in {categoryName}</h3>
-      {!creating && <Link className="participant-action-link" to={{ pathname: '/admin/categories', search: participantSearch(params, { catalogForm: 'new-event', event: null }) }}>New event</Link>}
-    </div>
-    {success && <p role="status" className="admin-success">{success}</p>}
+    <SectionHeadingParticipantSectionHeadingDiv><h3 id="events-title">Events in {categoryName}</h3>
+      {!creating && <ParticipantActionLinkLink to={{ pathname: '/admin/categories', search: participantSearch(params, { catalogForm: 'new-event', event: null }) }}>New event</ParticipantActionLinkLink>}
+    </SectionHeadingParticipantSectionHeadingDiv>
+    {success && <AdminSuccessP role="status">{success}</AdminSuccessP>}
     {state.status === 'loading' && <DashboardLoading>Loading events…</DashboardLoading>}
     {state.status === 'error' && <DashboardError retry={retry}>Events could not be loaded. Check your connection and try again.</DashboardError>}
     {state.status === 'ready' && <><p>{state.data.length} {state.data.length === 1 ? 'event' : 'events'}</p>
-      {state.data.length ? <ul className="participant-list catalog-list" aria-label="Events">{state.data.map((event) => <li key={event.id}><Link aria-current={!creating && event.id === eventId ? 'page' : undefined}
-        to={{ pathname: '/admin/categories', search: participantSearch(params, { event: event.id, catalogForm: null }) }}><span>{event.name}</span>{' '}<span className="catalog-list-order">Order: {event.sort_order}</span></Link></li>)}</ul> :
-        <div className="dashboard-panel"><h4>No events yet</h4><p>This category has no events. Add an event when ready.</p></div>}
+      {state.data.length ? <ParticipantListCatalogListUl aria-label="Events">{state.data.map((event) => <li key={event.id}><Link aria-current={!creating && event.id === eventId ? 'page' : undefined}
+        to={{ pathname: '/admin/categories', search: participantSearch(params, { event: event.id, catalogForm: null }) }}><span>{event.name}</span>{' '}<CatalogListOrderSpan>Order: {event.sort_order}</CatalogListOrderSpan></Link></li>)}</ParticipantListCatalogListUl> :
+        <DashboardPanelDiv><h4>No events yet</h4><p>This category has no events. Add an event when ready.</p></DashboardPanelDiv>}
     </>}
     {creating ? <CatalogForm kind="event" cancelSearch={participantSearch(params, { catalogForm: null })}
       save={(changes, signal) => eventsApi(request, competitionId, categoryId).save(changes, signal)} onSaved={(event) => {
@@ -54,9 +55,9 @@ function EventDetails({ competitionId, categoryId, categoryName, eventId, onChan
     save={(changes, signal) => eventsApi(request, competitionId, categoryId).save(changes, signal, eventId)} onSaved={() => {
       onChanged(); retry(); setParams(participantSearch(params, { catalogForm: null }));
     }} />;
-  return <div className="dashboard-panel"><p className="eyebrow">Event details</p><h4>{event.name}</h4><p>Parent category: {categoryName}</p><p>Display order: {event.sort_order}</p>
+  return <DashboardPanelDiv><EyebrowP>Event details</EyebrowP><h4>{event.name}</h4><p>Parent category: {categoryName}</p><p>Display order: {event.sort_order}</p>
     <CatalogActions kind="event" name={event.name} parentName={categoryName}
       editSearch={participantSearch(params, { catalogForm: 'event' })}
       remove={(signal) => eventsApi(request, competitionId, categoryId).remove(eventId, signal)} onDeleted={onDeleted} />
-  </div>;
+  </DashboardPanelDiv>;
 }

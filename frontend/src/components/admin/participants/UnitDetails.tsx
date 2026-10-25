@@ -1,3 +1,4 @@
+import { DashboardPanelDiv, EyebrowP, ParticipantDetailSection } from '../../../styles/components';
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { unitsApi } from '../../../api/participantsApi';
@@ -21,17 +22,17 @@ export function UnitDetails({ competitionId, competitionName, unitId, onChanged,
   if (state.status === 'error') return <DashboardError retry={retry}>This unit could not be loaded in the selected competition. Choose a unit from the list or retry.</DashboardError>;
   const unit = state.data;
   const form = params.get('participantForm');
-  return <section className="participant-detail" aria-labelledby="unit-details-title">
-    <div className="dashboard-panel"><p className="eyebrow">Unit details</p><h3 id="unit-details-title">{unit.name}</h3>
+  return <ParticipantDetailSection aria-labelledby="unit-details-title">
+    <DashboardPanelDiv><EyebrowP>Unit details</EyebrowP><h3 id="unit-details-title">{unit.name}</h3>
       {form !== 'unit' && <ParticipantActions kind="unit" name={unit.name} parentName={competitionName}
         editSearch={participantSearch(params, { participantForm: 'unit', madrasa: null })}
         allowDelete={form !== 'madrasa' && form !== 'new-madrasa'}
         remove={(signal) => unitsApi(request, competitionId).remove(unitId, signal)} onDeleted={onDeleted} />}
-    </div>
+    </DashboardPanelDiv>
     {form === 'unit' ? <ParticipantNameForm kind="unit" editing initialName={unit.name}
       cancelSearch={participantSearch(params, { participantForm: null })}
       save={(name, signal) => unitsApi(request, competitionId).save(name, signal, unitId)} onSaved={() => {
         onChanged('Unit saved.'); retry(); setParams(participantSearch(params, { participantForm: null }));
       }} /> : <MadrassaWorkspace competitionId={competitionId} unitId={unitId} unitName={unit.name} />}
-  </section>;
+  </ParticipantDetailSection>;
 }

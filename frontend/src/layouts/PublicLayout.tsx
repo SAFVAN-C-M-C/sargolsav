@@ -1,5 +1,6 @@
+import { BrandLink, BrandLogoImg, HeaderLogoImg, PublicAppDiv, PublicFooterFooter, PublicHeaderHeader, PublicMainMain, SkipLinkA } from '../styles/components';
 import { useEffect, useRef } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import type { PublicApi } from '../types/publicApi';
 
 export function PublicLayout({ api }: { api: PublicApi }) {
@@ -13,14 +14,14 @@ export function PublicLayout({ api }: { api: PublicApi }) {
       previousPath.current = pathname;
     }
   }, [pathname]);
-  return <div className="public-app">
-    <a className="skip-link" href="#public-content">Skip to content</a>
-    <header className="public-header"><Link className="brand" to="/" aria-label="Sargolsav home">
-      <img className="brand-logo" src="/images/MSM_LOGO.png" alt="MSM logo" width={827} height={414} />
-    </Link><img className="header-logo" src="/images/MSM_LOGO.png" alt="MSM logo" width={827} height={414} /></header>
-    <main ref={main} id="public-content" className="public-main" tabIndex={-1}>
+  return <PublicAppDiv>
+    <SkipLinkA href="#public-content">Skip to content</SkipLinkA>
+    <PublicHeaderHeader><BrandLink to="/" aria-label="Sargolsav home">
+      <BrandLogoImg src="/images/MSM_LOGO.png" alt="MSM logo" width={827} height={414} />
+    </BrandLink><HeaderLogoImg src="/images/MSM_LOGO.png" alt="MSM logo" width={827} height={414} /></PublicHeaderHeader>
+    <PublicMainMain ref={main} id="public-content" tabIndex={-1}>
       <Outlet context={api} />
-    </main>
-    <footer className="public-footer"><span>A product form SAFVAN</span><span>MSM TIRUR ZONE</span></footer>
-  </div>;
+    </PublicMainMain>
+    <PublicFooterFooter><span>A product form SAFVAN</span><span>MSM TIRUR ZONE</span></PublicFooterFooter>
+  </PublicAppDiv>;
 }

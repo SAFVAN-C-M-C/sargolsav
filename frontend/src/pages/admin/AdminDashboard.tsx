@@ -4,5 +4,5 @@ import { CompetitionOverview } from '../../components/admin/CompetitionOverview'
 
 export function AdminDashboard() {
   const { competition } = useOutletContext<{ competition?: AdminCompetition }>();
-  return <><h2 className="admin-page-title">Dashboard</h2>{competition && <CompetitionOverview competition={competition} />}</>;
+  return <><h2>Dashboard</h2>{competition && <CompetitionOverview competition={competition} />}</>;
 }

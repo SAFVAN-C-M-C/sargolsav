@@ -122,7 +122,7 @@ or new dependency was needed for this ticket.
   read-only verification, metadata, status actions, accessible confirmation and reason.
 - `DraftEditor`, `ResultsWorkspace`: correction reuse and selected-event status/navigation.
 - `AuthProvider`, `types/auth.ts`: restricted public snapshot read using the injected fetcher.
-- `AdminLayout`, `types/adminResults.ts`, `styles/global.css`: context reset, optional
+- `AdminLayout`, `types/adminResults.ts`, `styles/components.ts`: context reset, optional
   correction metadata, wrapping verification cards and scrollable mobile dialog.
 - `routes/ResultLifecycle.test.tsx`, `api/resultLifecycleApi.test.ts`:
   workflow/concurrency/security and contract tests; `ResultEntry.test.tsx` retains

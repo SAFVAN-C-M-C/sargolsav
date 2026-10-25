@@ -1,5 +1,6 @@
+import { ActionsNav, CorrectionWorkspaceSection, ParticipantActionLinkLink } from '../../../styles/components';
 import { useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { resultLifecycleApi } from '../../../api/resultLifecycleApi';
 import { competitionApi } from '../../../api/competitionApi';
 import { unitsApi } from '../../../api/participantsApi';
@@ -37,12 +38,12 @@ export function CorrectionWorkspace({ scope, correctionId, resultId, eventName, 
     else if (action) notify(action === 'review' ? 'Correction reviewed.' : 'Correction returned to draft.');
   };
   const reviewing = state.data.reviewMode || correction.status !== 'draft';
-  return <section className="correction-workspace" aria-label="Private correction workspace"><h4>Private correction · {correction.status}</h4>
+  return <CorrectionWorkspaceSection aria-label="Private correction workspace"><h4>Private correction · {correction.status}</h4>
     <p>Reason: {correction.reason}</p><p>Based on publication <bdi>{correction.base_publication_id}</bdi>. Public winners remain unchanged until correction publication succeeds.</p>
-    <nav className="actions" aria-label="Correction workspace navigation">
-      <Link className="participant-action-link" to={{ pathname: '/admin/results', search: participantSearch(params, { correction: null, resultView: null }) }}>Back to published result</Link>
-      {correction.status === 'draft' && <Link className="participant-action-link" to={{ pathname: '/admin/results', search: participantSearch(params, { resultView: reviewing ? 'correction' : 'correction-review' }) }}>{reviewing ? 'Edit correction' : 'Review saved correction'}</Link>}
-    </nav>
+    <ActionsNav aria-label="Correction workspace navigation">
+      <ParticipantActionLinkLink to={{ pathname: '/admin/results', search: participantSearch(params, { correction: null, resultView: null }) }}>Back to published result</ParticipantActionLinkLink>
+      {correction.status === 'draft' && <ParticipantActionLinkLink to={{ pathname: '/admin/results', search: participantSearch(params, { resultView: reviewing ? 'correction' : 'correction-review' }) }}>{reviewing ? 'Edit correction' : 'Review saved correction'}</ParticipantActionLinkLink>}
+    </ActionsNav>
     {correction.status === 'applied' && <p role="status">Correction applied. This workspace is read-only; a new correction must start from the current published result.</p>}
     {!reviewing ?
       <DraftEditor initial={{ ...correction, status: 'draft' }} scope={scope} categoryName={categoryName} units={units} positions={positions} correctionId={correction.id}
@@ -50,5 +51,5 @@ export function CorrectionWorkspace({ scope, correctionId, resultId, eventName, 
       <LifecycleActions record={correction} positions={positions} eventName={eventName} categoryName={categoryName} correction
         transition={(action, signal) => resultLifecycleApi.correctionTransition(request, scope, correctionId, action, correction.version, signal)}
         onConfirmed={confirm} reload={retry} />}
-  </section>;
+  </CorrectionWorkspaceSection>;
 }

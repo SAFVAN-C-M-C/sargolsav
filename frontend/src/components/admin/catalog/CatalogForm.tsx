@@ -1,5 +1,6 @@
+import { AdminFormDashboardPanelForm, BackLinkLink, AppButton, FormErrorP, FormInput, FieldLabel, SrOnlyLegend } from '../../../styles/components';
 import { useId, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import { catalogNameError, catalogOrderError } from '../../../api/catalogApi';
 import { useAdminMutation } from '../../../hooks/useAdminMutation';
 import { useUnsavedAdminForm } from '../../../hooks/useUnsavedAdminForm';
@@ -18,7 +19,7 @@ export function CatalogForm({ kind, initialName = '', initialOrder = 0, editing 
   const dirty = name !== initialName || displayOrder !== String(initialOrder);
   const clean = useUnsavedAdminForm(dirty || mutation.pending);
   const title = `${editing ? 'Edit' : 'Create'} ${kind}`;
-  return <form className="admin-form dashboard-panel" aria-label={title} noValidate onSubmit={async (event) => {
+  return <AdminFormDashboardPanelForm aria-label={title} noValidate onSubmit={async (event) => {
     event.preventDefault(); if (mutation.pending) return;
     const errors = { name: catalogNameError(name), order: catalogOrderError(displayOrder) }; setValidation(errors);
     if (errors.name || errors.order || (editing && !dirty)) return;
@@ -29,17 +30,17 @@ export function CatalogForm({ kind, initialName = '', initialOrder = 0, editing 
   }}>
     <h3>{title}</h3>
     <fieldset disabled={mutation.pending}>
-      <legend className="sr-only">{title} details</legend>
-      <label htmlFor={inputId}>{kind === 'category' ? 'Category' : 'Event'} name</label>
-      <input id={inputId} value={name} required aria-invalid={Boolean(validation.name)} aria-describedby={validation.name ? `${inputId}-name-error` : undefined} onChange={(event) => setName(event.target.value)} />
-      {validation.name && <p id={`${inputId}-name-error`} role="alert" className="form-error">{validation.name}</p>}
-      <label htmlFor={`${inputId}-order`}>Display order</label>
-      <input id={`${inputId}-order`} value={displayOrder} inputMode="numeric" required aria-invalid={Boolean(validation.order)} aria-describedby={`${inputId}-order-help${validation.order ? ` ${inputId}-order-error` : ''}`} onChange={(event) => setDisplayOrder(event.target.value)} />
+      <SrOnlyLegend>{title} details</SrOnlyLegend>
+      <FieldLabel htmlFor={inputId}>{kind === 'category' ? 'Category' : 'Event'} name</FieldLabel>
+      <FormInput id={inputId} value={name} required aria-invalid={Boolean(validation.name)} aria-describedby={validation.name ? `${inputId}-name-error` : undefined} onChange={(event) => setName(event.target.value)} />
+      {validation.name && <FormErrorP id={`${inputId}-name-error`} role="alert">{validation.name}</FormErrorP>}
+      <FieldLabel htmlFor={`${inputId}-order`}>Display order</FieldLabel>
+      <FormInput id={`${inputId}-order`} value={displayOrder} inputMode="numeric" required aria-invalid={Boolean(validation.order)} aria-describedby={`${inputId}-order-help${validation.order ? ` ${inputId}-order-error` : ''}`} onChange={(event) => setDisplayOrder(event.target.value)} />
       <p id={`${inputId}-order-help`}>Use a whole number from 0 to 2147483647. Lower numbers appear first. Equal orders use ascending record ID.</p>
-      {validation.order && <p id={`${inputId}-order-error`} role="alert" className="form-error">{validation.order}</p>}
-      <button type="submit" disabled={editing && !dirty}>{mutation.pending ? 'Saving…' : `${editing ? 'Save' : 'Create'} ${kind}`}</button>
+      {validation.order && <FormErrorP id={`${inputId}-order-error`} role="alert">{validation.order}</FormErrorP>}
+      <AppButton type="submit" disabled={editing && !dirty}>{mutation.pending ? 'Saving…' : `${editing ? 'Save' : 'Create'} ${kind}`}</AppButton>
     </fieldset>
-    {mutation.error && <p role="alert" className="form-error">{mutation.error}</p>}
-    <Link className="back-link" to={{ pathname: '/admin/categories', search: cancelSearch }}>Cancel</Link>
-  </form>;
+    {mutation.error && <FormErrorP role="alert">{mutation.error}</FormErrorP>}
+    <BackLinkLink to={{ pathname: '/admin/categories', search: cancelSearch }}>Cancel</BackLinkLink>
+  </AdminFormDashboardPanelForm>;
 }

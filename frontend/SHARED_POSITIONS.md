@@ -106,7 +106,7 @@ and private audit data never enter public projections.
 - `api/resultsApi.ts`, `api/resultLifecycleApi.ts`: explicit scoped save operations.
 - `utils/winnerEntry.ts`: explicit opt-in to shared-position validation only;
   `utils/sharedPositions.ts`: backend-aligned reason validation and grouped display.
-- `styles/global.css`: wrapping notices, touch-friendly opt-in and responsive reason field.
+- `styles/components.ts`: wrapping notices, touch-friendly opt-in and responsive reason field.
 - API/utility tests, `ResultEntry.test.tsx` and `ResultLifecycle.test.tsx`: contract,
   editor, lifecycle, concurrency, navigation and authentication regressions.
 - `backend/test/admin-shared-workflow.integration.test.js`: one new combined isolated

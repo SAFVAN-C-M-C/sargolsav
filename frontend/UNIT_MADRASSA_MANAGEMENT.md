@@ -76,7 +76,7 @@ validation and dependencies.
   deletion-conflict explanations.
 - `types/adminParticipants.ts`: typed unit and Madrassa data projections.
 - `utils/participantPaths.ts`: query changes that retain competition context.
-- `App.tsx`, `AdminLayout.tsx`, `types/auth.ts`, `AuthProvider.tsx`, `global.css`:
+- `App.tsx`, `AdminLayout.tsx`, `types/auth.ts`, `AuthProvider.tsx`, `styles/components.ts`:
   route integration, child-selection cleanup, DELETE support and responsive styles.
 - `routes/UnitManagement.test.tsx`, `api/participantsApi.test.ts` and the existing
   dashboard route tests cover integration and regression behavior.

@@ -1,3 +1,4 @@
+import { AdminAuthShellDiv, DashboardPanelDiv } from './styles/components';
 import { Outlet, Route, Routes } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -17,7 +18,7 @@ import { AdminCategories } from './pages/admin/AdminCategories';
 const AdminResults = lazy(() => import('./pages/admin/AdminResults').then((module) => ({ default: module.AdminResults })));
 
 function AdminShell({ client, fetcher }: { client: AuthClient; fetcher: typeof fetch }) {
-  return <AuthProvider client={client} fetcher={fetcher}><div className="admin-auth-shell"><Outlet /></div></AuthProvider>;
+  return <AuthProvider client={client} fetcher={fetcher}><AdminAuthShellDiv><Outlet /></AdminAuthShellDiv></AuthProvider>;
 }
 
 export function AppRoutes({ client = firebaseAuthClient, fetcher = fetch }: {
@@ -35,7 +36,7 @@ export function AppRoutes({ client = firebaseAuthClient, fetcher = fetch }: {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="units" element={<AdminUnits />} />
             <Route path="categories" element={<AdminCategories />} />
-            <Route path="results" element={<Suspense fallback={<div className="dashboard-panel" role="status">Loading results…</div>}><AdminResults /></Suspense>} />
+            <Route path="results" element={<Suspense fallback={<DashboardPanelDiv role="status">Loading results…</DashboardPanelDiv>}><AdminResults /></Suspense>} />
             <Route path="*" element={<AdminPlaceholder title="Admin page not found" />} />
           </Route>
         </Route>

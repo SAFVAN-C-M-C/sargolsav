@@ -1,3 +1,4 @@
+import { EyebrowP, PublicBackLink } from '../../styles/components';
 import { useEffect } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { PublicApiError } from '../../api/publicErrors';
@@ -21,8 +22,8 @@ export function CompetitionPage({ leaderboards = false, rankingType = 'units' }:
     document.title = state.status === 'ready' ? `${leaderboards ? `${category?.name ?? 'Overall'} · ${rankingType === 'units' ? 'Unit' : 'Candidate'} rankings` : category?.name ?? 'Results'} · ${state.data.competition.name} · Sargolsav` : 'Sargolsav';
   }, [state, category, leaderboards, eventId, rankingType]);
   return <>
-    <Link className="public-back" to={leaderboards && categoryId ? leaderboardPath(competitionId) : eventId && categoryId ? categoryPath(competitionId, categoryId) : categoryId ? resultsPath(competitionId) : '/'}>← {leaderboards && categoryId ? 'Overall rankings' : eventId ? 'All events' : categoryId ? 'All categories' : 'Home'}</Link>
-    <p className="eyebrow">Zonal Madrassa Cultural Competition</p>
+    <PublicBackLink to={leaderboards && categoryId ? leaderboardPath(competitionId) : eventId && categoryId ? categoryPath(competitionId, categoryId) : categoryId ? resultsPath(competitionId) : '/'}>← {leaderboards && categoryId ? 'Overall rankings' : eventId ? 'All events' : categoryId ? 'All categories' : 'Home'}</PublicBackLink>
+    <EyebrowP variant="public">Zonal Madrassa Cultural Competition</EyebrowP>
     <h1>{state.status === 'ready' ? state.data.competition.name : 'Competition'}</h1>
     <CompetitionPicker id={competitionId} leaderboards={leaderboards} />
     <PublicNavigation competitionId={competitionId} />

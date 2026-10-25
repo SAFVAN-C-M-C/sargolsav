@@ -1,3 +1,4 @@
+import { AdminSuccessP, CatalogListOrderSpan, DashboardPanelDiv, ParticipantActionLinkLink, ParticipantListCatalogListUl, SectionHeadingParticipantSectionHeadingDiv } from '../../../styles/components';
 import { useCallback, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { categoriesApi } from '../../../api/catalogApi';
@@ -18,15 +19,15 @@ export function CompetitionCategories({ competitionId, competitionName }: { comp
   const creating = params.get('catalogForm') === 'new-category';
   const change = (changes: Record<string, string | null>) => setParams(participantSearch(params, changes));
   return <>
-    <div className="section-heading participant-section-heading"><h3>Competition categories</h3>
-      {!creating && <Link className="participant-action-link" to={{ pathname: '/admin/categories', search: participantSearch(params, { catalogForm: 'new-category', event: null }) }}>New category</Link>}
-    </div>
-    {success && <p role="status" className="admin-success">{success}</p>}
+    <SectionHeadingParticipantSectionHeadingDiv><h3>Competition categories</h3>
+      {!creating && <ParticipantActionLinkLink to={{ pathname: '/admin/categories', search: participantSearch(params, { catalogForm: 'new-category', event: null }) }}>New category</ParticipantActionLinkLink>}
+    </SectionHeadingParticipantSectionHeadingDiv>
+    {success && <AdminSuccessP role="status">{success}</AdminSuccessP>}
     {state.status === 'loading' && <DashboardLoading>Loading categories…</DashboardLoading>}
     {state.status === 'error' && <DashboardError retry={retry}>Categories could not be loaded. Check your connection and try again.</DashboardError>}
-    {state.status === 'ready' && (state.data.length ? <ul className="participant-list catalog-list" aria-label="Categories">
-      {state.data.map((category) => <li key={category.id}><Link aria-current={!creating && category.id === categoryId ? 'page' : undefined} to={{ pathname: '/admin/categories', search: participantSearch(params, { category: category.id, event: null, catalogForm: null }) }}><span>{category.name}</span>{' '}<span className="catalog-list-order">Order: {category.sort_order}</span></Link></li>)}
-    </ul> : <div className="dashboard-panel"><h3>No categories yet</h3><p>Create the first category for this competition. Events can be added later.</p></div>)}
+    {state.status === 'ready' && (state.data.length ? <ParticipantListCatalogListUl aria-label="Categories">
+      {state.data.map((category) => <li key={category.id}><Link aria-current={!creating && category.id === categoryId ? 'page' : undefined} to={{ pathname: '/admin/categories', search: participantSearch(params, { category: category.id, event: null, catalogForm: null }) }}><span>{category.name}</span>{' '}<CatalogListOrderSpan>Order: {category.sort_order}</CatalogListOrderSpan></Link></li>)}
+    </ParticipantListCatalogListUl> : <DashboardPanelDiv><h3>No categories yet</h3><p>Create the first category for this competition. Events can be added later.</p></DashboardPanelDiv>)}
     {creating ? <CatalogForm kind="category" cancelSearch={participantSearch(params, { catalogForm: null })}
       save={(changes, signal) => categoriesApi(request, competitionId).save(changes, signal)} onSaved={(category) => {
         setSuccess('Category created.'); retry(); change({ category: category.id, event: null, catalogForm: null });

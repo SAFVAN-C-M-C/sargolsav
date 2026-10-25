@@ -133,7 +133,7 @@ repeated automatically; inspect current server data before retrying a creation.
 - `api/catalogApi.ts`: authenticated typed operations, scope/shape validation and
   dependency conflict feedback.
 - `types/adminCatalog.ts`: category/event projections and partial change contract.
-- `App.tsx`, `AdminLayout.tsx`, `styles/global.css`: route registration, child-state
+- `App.tsx`, `AdminLayout.tsx`, `styles/components.ts`: route registration, child-state
   cleanup and wrapping order badges using existing admin design tokens.
 - `routes/CategoryManagement.test.tsx`, `api/catalogApi.test.ts` and existing
   dashboard route tests: feature and regression coverage.

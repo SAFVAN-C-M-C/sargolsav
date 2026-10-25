@@ -1,3 +1,4 @@
+import { BackLinkLink, DashboardPanelPublishedSnapshotSection, NoticeDiv, ResultLifecycleSection } from '../../../styles/components';
 import { useCallback, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { resultLifecycleApi } from '../../../api/resultLifecycleApi';
@@ -41,21 +42,21 @@ export function ResultLifecycleWorkspace({ scope, onState, notify }: { scope: Re
     setParams(participantSearch(params, { correction: correction.id, resultView: 'correction' }));
   };
   const correctionId = params.get('correction');
-  return <section className="result-lifecycle" aria-label="Result lifecycle workspace">
+  return <ResultLifecycleSection aria-label="Result lifecycle workspace">
     {result.status !== 'published' ? <>
-      {result.status === 'draft' && <Link className="back-link" to={{ pathname: '/admin/results', search: participantSearch(params, { resultView: null, correction: null }) }}>Edit incomplete or changed draft</Link>}
+      {result.status === 'draft' && <BackLinkLink to={{ pathname: '/admin/results', search: participantSearch(params, { resultView: null, correction: null }) }}>Edit incomplete or changed draft</BackLinkLink>}
       <LifecycleActions record={result} positions={positions} eventName={event.name} categoryName={category.name}
         transition={(action, signal) => resultLifecycleApi.transition(request, scope, action, result.version, signal)} onConfirmed={accept} reload={retry} />
     </> : <>
-      {published && <section className="dashboard-panel published-snapshot" aria-label="Current public result"><h4>Current public result</h4>
+      {published && <DashboardPanelPublishedSnapshotSection aria-label="Current public result"><h4>Current public result</h4>
         <p>Event: {published.event_name}<br />Category: {published.category_name}<br />Publication ID: <bdi>{published.publication_id}</bdi></p>
         <PublishedWinners winners={published.winners} />
         <p>Published at <time dateTime={published.published_at}>{published.published_at}</time>{result.published_by && <> by <bdi>{result.published_by}</bdi></>}</p>
         {result.reviewed_by && <p>Reviewed by <bdi>{result.reviewed_by}</bdi>{result.reviewed_at && <> at <time dateTime={result.reviewed_at}>{result.reviewed_at}</time></>}</p>}
-      </section>}
-      {result.active_correction_id && <div className="notice"><strong>Correction in Progress</strong><p>An existing private workspace is available. Starting another correction is not allowed.</p><Link to={{ pathname: '/admin/results', search: participantSearch(params, { correction: result.active_correction_id, resultView: 'correction' }) }}>Resume correction</Link></div>}
+      </DashboardPanelPublishedSnapshotSection>}
+      {result.active_correction_id && <NoticeDiv><strong>Correction in Progress</strong><p>An existing private workspace is available. Starting another correction is not allowed.</p><Link to={{ pathname: '/admin/results', search: participantSearch(params, { correction: result.active_correction_id, resultView: 'correction' }) }}>Resume correction</Link></NoticeDiv>}
       {correctionId ? <CorrectionWorkspace key={correctionId} scope={scope} correctionId={correctionId} resultId={result.id} eventName={event.name} categoryName={category.name} notify={notify} onApplied={retry} /> :
         !result.active_correction_id && <StartCorrectionForm result={result} scope={scope} onStarted={started} reload={retry} />}
     </>}
-  </section>;
+  </ResultLifecycleSection>;
 }

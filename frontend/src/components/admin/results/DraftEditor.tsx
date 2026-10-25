@@ -1,3 +1,4 @@
+import { AppButton, ButtonSecondaryButton, DraftFieldsFieldset, DraftFormDashboardPanelForm, DraftSaveBarDiv, FormErrorDiv, FormErrorP, FormInput, FieldLabel, NoticeP, SharedPositionControlsFieldset, SharedPositionNoticeP, SharedPositionToggleLabel, SrOnlyLegend } from '../../../styles/components';
 import { useEffect, useRef, useState } from 'react';
 import { resultsApi } from '../../../api/resultsApi';
 import { resultLifecycleApi } from '../../../api/resultLifecycleApi';
@@ -47,7 +48,7 @@ export function DraftEditor({ initial, scope, categoryName, units, positions, on
       if (result.data.correction) onCorrectionConfirmed?.(result.data.correction); else onConfirmed(result.data.draft);
     }
   };
-  return <form className="draft-form dashboard-panel" aria-label={correctionId ? 'Result correction draft' : 'Event result draft'} noValidate onSubmit={async (event) => {
+  return <DraftFormDashboardPanelForm aria-label={correctionId ? 'Result correction draft' : 'Event result draft'} noValidate onSubmit={async (event) => {
     event.preventDefault(); if (mutation.pending || blocked || confirmation) return;
     setSuccess(''); let entries;
     try {
@@ -60,32 +61,32 @@ export function DraftEditor({ initial, scope, categoryName, units, positions, on
     if (allowShared) setConfirmation(submission); else await save(submission, false);
   }}>
     <p>{correctionId ? 'Private correction workspace. The current public result remains unchanged until correction publication succeeds.' : 'Private editable draft.'} Missing winning positions and an empty winner list are allowed. Each added winner must have complete required details.</p>
-    {positions.length === 0 && <p className="notice">No winning positions configured. Only an empty draft can be saved. Configure shared points in Settings before entering winners.</p>}
+    {positions.length === 0 && <NoticeP>No winning positions configured. Only an empty draft can be saved. Configure shared points in Settings before entering winners.</NoticeP>}
     {units.length === 0 && <p>No units registered. Add units before entering new winners.</p>}
-    <div ref={errorRef} tabIndex={-1}>{validation && <p role="alert" className="form-error">{validation}</p>}</div>
-    <fieldset className="shared-position-controls" disabled={mutation.pending || Boolean(confirmation)}><legend>Exceptional shared positions</legend>
-      {hasOverride && <p className="shared-position-notice">Saved shared-position approval references are present. All edits and removals require a fresh explicit override save. No override is automatically enabled.</p>}
-      <label className="shared-position-toggle"><input type="checkbox" checked={allowShared} aria-describedby="shared-position-help" onChange={(event) => { setAllowShared(event.target.checked); setSuccess(''); setValidation(''); }} />Allow Shared Positions</label>
+    <div ref={errorRef} tabIndex={-1}>{validation && <FormErrorP role="alert">{validation}</FormErrorP>}</div>
+    <SharedPositionControlsFieldset disabled={mutation.pending || Boolean(confirmation)}><legend>Exceptional shared positions</legend>
+      {hasOverride && <SharedPositionNoticeP>Saved shared-position approval references are present. All edits and removals require a fresh explicit override save. No override is automatically enabled.</SharedPositionNoticeP>}
+      <SharedPositionToggleLabel><FormInput type="checkbox" checked={allowShared} aria-describedby="shared-position-help" onChange={(event) => { setAllowShared(event.target.checked); setSuccess(''); setValidation(''); }} />Allow Shared Positions</SharedPositionToggleLabel>
       <p id="shared-position-help">Use only for an exceptional tie confirmed by the judges. A meaningful reason and explicit confirmation are required for each save. Duplicate candidates are never allowed.</p>
-      {allowShared && <><label htmlFor="shared-position-reason">Shared-position override reason</label><textarea id="shared-position-reason" value={reason} required aria-describedby="shared-position-help" onChange={(event) => { setReason(event.target.value); setSuccess(''); }} /></>}
-      {sharedGroups(rows).map((group) => <p className="shared-position-notice" key={group.position}><strong>Shared position {group.position}</strong>: {group.winners.map((entry, index) => `${entry.candidate_code || `Winner ${index + 1}`} · ${entry.name || 'Name required'}`).join('; ')}</p>)}
-    </fieldset>
-    <fieldset className="draft-fields" disabled={mutation.pending || Boolean(confirmation)}><legend className="sr-only">Draft winners</legend>
+      {allowShared && <><FieldLabel htmlFor="shared-position-reason">Shared-position override reason</FieldLabel><textarea id="shared-position-reason" value={reason} required aria-describedby="shared-position-help" onChange={(event) => { setReason(event.target.value); setSuccess(''); }} /></>}
+      {sharedGroups(rows).map((group) => <SharedPositionNoticeP key={group.position}><strong>Shared position {group.position}</strong>: {group.winners.map((entry, index) => `${entry.candidate_code || `Winner ${index + 1}`} · ${entry.name || 'Name required'}`).join('; ')}</SharedPositionNoticeP>)}
+    </SharedPositionControlsFieldset>
+    <DraftFieldsFieldset disabled={mutation.pending || Boolean(confirmation)}><SrOnlyLegend>Draft winners</SrOnlyLegend>
       {rows.map((row, index) => <WinnerEntry key={row.key} row={row} index={index} competitionId={scope.competitionId} categoryId={scope.categoryId} categoryName={categoryName} units={units} positions={positions}
         onChange={(changes) => change((current) => current.map((item) => item.key === row.key ? { ...item, ...changes } : item))} onRemove={() => { change((current) => current.filter((item) => item.key !== row.key)); addRef.current?.focus(); }} />)}
       {rows.length === 0 && <p>No winners entered.</p>}
-      <button ref={addRef} type="button" className="button-secondary" disabled={positions.length === 0 || (!allowShared && rows.length >= positions.length)} onClick={() => {
+      <ButtonSecondaryButton ref={addRef} type="button" disabled={positions.length === 0 || (!allowShared && rows.length >= positions.length)} onClick={() => {
         const key = `new-${nextKey.current++}`;
         change((current) => [...current, { key, candidate_code: '', name: '', unit_id: '', madrasa_id: '', position: positions.find((position) => !current.some((row) => row.position === position)) ?? (allowShared ? positions[0] : ''), resolution: 'unchecked' }]);
-      }}>Add winner</button>
-    </fieldset>
-    {!confirmation && mutation.error && <div role="alert" className="form-error"><p>{mutation.error}</p>{mutation.status === 409 && <p>Your entries are retained. Reconcile candidate conflicts, or deliberately reload the current server draft after a version/lifecycle conflict.</p>}</div>}
-    <div className="draft-save-bar"><button type="submit" disabled={mutation.pending || blocked || Boolean(confirmation)}>{mutation.pending ? 'Saving…' : allowShared ? 'Save shared-position override' : correctionId ? 'Save correction' : 'Save draft'}</button>
-      <button type="button" className="button-secondary" disabled={mutation.pending || Boolean(confirmation)} onClick={() => {
+      }}>Add winner</ButtonSecondaryButton>
+    </DraftFieldsFieldset>
+    {!confirmation && mutation.error && <FormErrorDiv role="alert"><p>{mutation.error}</p>{mutation.status === 409 && <p>Your entries are retained. Reconcile candidate conflicts, or deliberately reload the current server draft after a version/lifecycle conflict.</p>}</FormErrorDiv>}
+    <DraftSaveBarDiv><AppButton type="submit" disabled={mutation.pending || blocked || Boolean(confirmation)}>{mutation.pending ? 'Saving…' : allowShared ? 'Save shared-position override' : correctionId ? 'Save correction' : 'Save draft'}</AppButton>
+      <ButtonSecondaryButton type="button" disabled={mutation.pending || Boolean(confirmation)} onClick={() => {
         if (!dirty || window.confirm('Discard unsaved winner entries and reload the server draft?')) { clean(); reload(); }
-      }}>{correctionId ? 'Reload correction' : 'Reload draft'}</button>
+      }}>{correctionId ? 'Reload correction' : 'Reload draft'}</ButtonSecondaryButton>
       <span role="status">{mutation.pending ? 'Saving draft…' : success || (dirty ? 'Unsaved changes' : 'Draft loaded')}</span>
-    </div>
+    </DraftSaveBarDiv>
     {confirmation && <SharedPositionConfirmation submission={confirmation} units={units} correction={Boolean(correctionId)} pending={mutation.pending} error={mutation.error} blocked={blocked} onCancel={() => setConfirmation(undefined)} onConfirm={() => void save(confirmation, true)} />}
-  </form>;
+  </DraftFormDashboardPanelForm>;
 }

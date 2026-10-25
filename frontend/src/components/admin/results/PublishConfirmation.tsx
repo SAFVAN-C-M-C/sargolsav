@@ -1,3 +1,4 @@
+import { ActionsDiv, AppButton, ButtonSecondaryButton, FormErrorP, PublicationDialogDiv, PublicationOverlayDiv } from '../../../styles/components';
 import { useEffect, useRef } from 'react';
 import type { LifecycleEntry } from '../../../types/resultLifecycle';
 import { WinnerSummary } from './WinnerSummary';
@@ -15,7 +16,7 @@ export function PublishConfirmation({ entries, eventName, categoryName, correcti
     };
   }, []);
   useEffect(() => { if (pending) dialog.current?.focus(); else cancel.current?.focus(); }, [pending]);
-  return <div className="publication-overlay"><div ref={dialog} tabIndex={-1} className="publication-dialog" role="dialog" aria-modal="true" aria-labelledby="publication-title" aria-describedby="publication-impact" onKeyDown={(event) => {
+  return <PublicationOverlayDiv><PublicationDialogDiv ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="publication-title" aria-describedby="publication-impact" onKeyDown={(event) => {
     if (event.key === 'Escape' && !pending) { event.preventDefault(); onCancel(); }
     if (event.key === 'Tab') {
       const controls = [...(dialog.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? [])];
@@ -28,7 +29,7 @@ export function PublishConfirmation({ entries, eventName, categoryName, correcti
     <h3 id="publication-title">{correction ? 'Publish corrected result?' : 'Publish this result?'}</h3>
     <p id="publication-impact">Publishing makes these exact winners public and changes leaderboard standings.{correction ? ' The current public result is replaced only when publication succeeds. Prior publication and audit history are retained.' : ''}</p>
     <WinnerSummary entries={entries} eventName={eventName} categoryName={categoryName} title="Exact winners to publish" />
-    {error && <p role="alert" className="form-error">{error}</p>}
-    <div className="actions"><button ref={cancel} type="button" className="button-secondary" disabled={pending} onClick={onCancel}>Cancel publication</button><button type="button" disabled={pending || blocked} onClick={onConfirm}>{pending ? 'Publishing…' : 'Confirm publication'}</button></div>
-  </div></div>;
+    {error && <FormErrorP role="alert">{error}</FormErrorP>}
+    <ActionsDiv layout="dialog"><ButtonSecondaryButton ref={cancel} type="button" disabled={pending} onClick={onCancel}>Cancel publication</ButtonSecondaryButton><AppButton type="button" disabled={pending || blocked} onClick={onConfirm}>{pending ? 'Publishing…' : 'Confirm publication'}</AppButton></ActionsDiv>
+  </PublicationDialogDiv></PublicationOverlayDiv>;
 }

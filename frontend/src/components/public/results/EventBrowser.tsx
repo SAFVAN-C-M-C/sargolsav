@@ -1,3 +1,4 @@
+import { CardArrowSpan, CategoryCardEventCardLink, CategoryCopySpan, CategoryGridEventGridUl, PublicIntroP, ResultStatusSpan } from '../../../styles/components';
 import { useMemo } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { PublicApiError } from '../../../api/publicErrors';
@@ -25,16 +26,16 @@ export function EventBrowser({ competitionId, categoryId, eventId }: {
       eventName={event.name} categoryName={state.data.category.name} />;
   }
   const events = [...state.data.events].sort((a, b) => a.sort_order - b.sort_order || (BigInt(a.id) < BigInt(b.id) ? -1 : BigInt(a.id) > BigInt(b.id) ? 1 : 0));
-  return <section aria-label="Category events"><p className="public-intro">Choose an event to view its published winners.</p>
+  return <section aria-label="Category events"><PublicIntroP>Choose an event to view its published winners.</PublicIntroP>
     <RefreshStatus state={state} retry={entry.retry} />
     {events.length === 0 ? <EmptyState title="Events are on the way">No events have been added to this category yet.</EmptyState> :
-      <ul className="category-grid event-grid">{events.map((event) => <li key={event.id}>
-        <Link className="category-card event-card" to={eventPath(competitionId, categoryId, event.id)}>
-          <span className="category-copy"><strong>{event.name}</strong>
-            <span className={`result-status ${event.status === 'published' ? 'is-published' : 'is-awaiting'}`}>
+      <CategoryGridEventGridUl>{events.map((event) => <li key={event.id}>
+        <CategoryCardEventCardLink to={eventPath(competitionId, categoryId, event.id)}>
+          <CategoryCopySpan><strong>{event.name}</strong>
+            <ResultStatusSpan published={event.status === 'published'}>
               {event.status === 'published' ? 'Published' : 'Awaiting Result'}
-            </span>
-          </span><span className="card-arrow" aria-hidden="true">↗</span>
-        </Link></li>)}</ul>}
+            </ResultStatusSpan>
+          </CategoryCopySpan><CardArrowSpan aria-hidden="true">↗</CardArrowSpan>
+        </CategoryCardEventCardLink></li>)}</CategoryGridEventGridUl>}
   </section>;
 }

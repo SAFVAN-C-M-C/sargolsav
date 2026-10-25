@@ -1,3 +1,4 @@
+import { DashboardPanelDiv, EyebrowP, ParticipantDetailSection } from '../../../styles/components';
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { categoriesApi } from '../../../api/catalogApi';
@@ -21,18 +22,18 @@ export function CategoryDetails({ competitionId, competitionName, categoryId, on
   if (state.status === 'error') return <DashboardError retry={retry}>This category could not be loaded in the selected competition. Choose a category from the list or retry.</DashboardError>;
   const category = state.data;
   const form = params.get('catalogForm');
-  return <section className="participant-detail" aria-labelledby="category-details-title">
-    <div className="dashboard-panel"><p className="eyebrow">Category details</p><h3 id="category-details-title">{category.name}</h3>
+  return <ParticipantDetailSection aria-labelledby="category-details-title">
+    <DashboardPanelDiv><EyebrowP>Category details</EyebrowP><h3 id="category-details-title">{category.name}</h3>
       <p>Display order: {category.sort_order}</p>
       {form !== 'category' && <CatalogActions kind="category" name={category.name} parentName={competitionName}
         editSearch={participantSearch(params, { catalogForm: 'category', event: null })}
         allowDelete={form !== 'event' && form !== 'new-event'}
         remove={(signal) => categoriesApi(request, competitionId).remove(categoryId, signal)} onDeleted={onDeleted} />}
-    </div>
+    </DashboardPanelDiv>
     {form === 'category' ? <CatalogForm kind="category" editing initialName={category.name} initialOrder={category.sort_order}
       cancelSearch={participantSearch(params, { catalogForm: null })}
       save={(changes, signal) => categoriesApi(request, competitionId).save(changes, signal, categoryId)} onSaved={() => {
         onChanged('Category saved.'); retry(); setParams(participantSearch(params, { catalogForm: null }));
       }} /> : <EventWorkspace competitionId={competitionId} categoryId={categoryId} categoryName={category.name} />}
-  </section>;
+  </ParticipantDetailSection>;
 }

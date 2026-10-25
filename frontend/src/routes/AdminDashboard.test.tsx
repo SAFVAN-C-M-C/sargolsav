@@ -72,8 +72,9 @@ test('multiple active and historical competitions can be selected; counts includ
 test('deep links, placeholders, mobile navigation and browser history retain selection', async () => {
   const { user } = setup('/admin?competition=3');
   await screen.findByRole('heading', { name: competitions[2].name });
-  await user.click(screen.getByRole('button', { name: 'Menu' }));
-  expect(screen.getByRole('button', { name: 'Menu' }).getAttribute('aria-expanded')).toBe('true');
+  // jsdom does not apply the media query that reveals the mobile menu button.
+  await user.click(screen.getByText('Menu', { selector: 'button' }));
+  expect(screen.getByText('Menu', { selector: 'button' }).getAttribute('aria-expanded')).toBe('true');
   for (const label of ['Competitions', 'Settings', 'Units & Madrassas', 'Categories & Events', 'Results']) {
     await user.click(screen.getByRole('link', { name: label }));
     await screen.findByRole('heading', { name: label });

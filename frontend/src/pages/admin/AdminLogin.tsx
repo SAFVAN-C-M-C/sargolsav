@@ -1,6 +1,7 @@
+import { BackLinkLink, AppButton, EyebrowP, FormErrorP, AppForm, FormInput, FieldLabel, LoginCardSection } from '../../styles/components';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { loginErrorMessage } from '../../utils/authErrors';
 import { requestedDestination } from '../../utils/adminPaths';
@@ -33,23 +34,23 @@ export function AdminLogin() {
   };
 
   return (
-    <section className="login-card" aria-labelledby="login-title">
-      <p className="eyebrow">Admin access</p>
+    <LoginCardSection aria-labelledby="login-title">
+      <EyebrowP>Admin access</EyebrowP>
       <h1 id="login-title">Sign in</h1>
       <p>Use your authorized Firebase account to manage Sargolsav.</p>
-      <form onSubmit={(event) => void submit(event)}>
-        <label htmlFor="admin-email">Email</label>
-        <input id="admin-email" type="email" autoComplete="username" required
+      <AppForm onSubmit={(event) => void submit(event)}>
+        <FieldLabel htmlFor="admin-email">Email</FieldLabel>
+        <FormInput id="admin-email" type="email" autoComplete="username" required
           value={email} onChange={(event) => setEmail(event.target.value)} />
-        <label htmlFor="admin-password">Password</label>
-        <input id="admin-password" type="password" autoComplete="current-password" required
+        <FieldLabel htmlFor="admin-password">Password</FieldLabel>
+        <FormInput id="admin-password" type="password" autoComplete="current-password" required
           value={password} onChange={(event) => setPassword(event.target.value)} />
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <button type="submit" disabled={submitting}>
+        {error && <FormErrorP role="alert">{error}</FormErrorP>}
+        <AppButton type="submit" disabled={submitting}>
           {submitting ? 'Signing in…' : 'Sign in'}
-        </button>
-      </form>
-      <Link className="back-link" to="/">Back to public home</Link>
-    </section>
+        </AppButton>
+      </AppForm>
+      <BackLinkLink to="/">Back to public home</BackLinkLink>
+    </LoginCardSection>
   );
 }

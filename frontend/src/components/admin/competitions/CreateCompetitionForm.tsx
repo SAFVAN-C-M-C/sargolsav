@@ -1,3 +1,4 @@
+import { ActionsDiv, AdminFormDashboardPanelForm, AppButton, ButtonSecondaryButton, FormErrorP, FormInput, FieldLabel, SrOnlyLegend } from '../../../styles/components';
 import { useState } from 'react';
 import { useAdminAuth } from '../../../hooks/useAdminAuth';
 import { useAdminMutation } from '../../../hooks/useAdminMutation';
@@ -12,7 +13,7 @@ export function CreateCompetitionForm({ onCreated, onCancel }: { onCreated: (com
   const [code, setCode] = useState('');
   const [validation, setValidation] = useState<string>();
   const clean = useUnsavedAdminForm(Boolean(name || code) || mutation.pending);
-  return <form className="admin-form dashboard-panel" aria-label="Create competition" noValidate onSubmit={async (event) => {
+  return <AdminFormDashboardPanelForm aria-label="Create competition" noValidate onSubmit={async (event) => {
     event.preventDefault();
     const error = validateCompetition(name, code);
     setValidation(error);
@@ -22,14 +23,14 @@ export function CreateCompetitionForm({ onCreated, onCancel }: { onCreated: (com
   }}>
     <h3>Create competition</h3><p>New competitions start as drafts. Name and code are required.</p>
     <fieldset disabled={mutation.pending}>
-      <legend className="sr-only">New competition details</legend>
-      <label htmlFor="create-name">Competition name</label><input id="create-name" value={name} onChange={(event) => setName(event.target.value)} aria-describedby={validation ? 'create-validation' : undefined} />
-      <label htmlFor="create-code">Competition code</label><input id="create-code" value={code} onChange={(event) => setCode(event.target.value)} aria-describedby={validation ? 'create-validation' : undefined} />
-      {validation && <p id="create-validation" className="form-error" role="alert">{validation}</p>}
-      <div className="actions"><button type="submit">{mutation.pending ? 'Creating…' : 'Create competition'}</button><button type="button" className="button-secondary" onClick={() => {
+      <SrOnlyLegend>New competition details</SrOnlyLegend>
+      <FieldLabel htmlFor="create-name">Competition name</FieldLabel><FormInput id="create-name" value={name} onChange={(event) => setName(event.target.value)} aria-describedby={validation ? 'create-validation' : undefined} />
+      <FieldLabel htmlFor="create-code">Competition code</FieldLabel><FormInput id="create-code" value={code} onChange={(event) => setCode(event.target.value)} aria-describedby={validation ? 'create-validation' : undefined} />
+      {validation && <FormErrorP id="create-validation" role="alert">{validation}</FormErrorP>}
+      <ActionsDiv layout="form"><AppButton type="submit">{mutation.pending ? 'Creating…' : 'Create competition'}</AppButton><ButtonSecondaryButton type="button" onClick={() => {
         if (!(name || code) || window.confirm('Discard the new competition details?')) { clean(); onCancel(); }
-      }}>Cancel</button></div>
+      }}>Cancel</ButtonSecondaryButton></ActionsDiv>
     </fieldset>
-    {mutation.error && <p className="form-error" role="alert">{mutation.error}</p>}
-  </form>;
+    {mutation.error && <FormErrorP role="alert">{mutation.error}</FormErrorP>}
+  </AdminFormDashboardPanelForm>;
 }

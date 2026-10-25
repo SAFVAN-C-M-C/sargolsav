@@ -1,5 +1,6 @@
+import { AdminAccountDiv, AdminBrandLink, AdminMenuToggleButtonSecondaryButton, AdminPickerDiv, AdminPublicLinkLink, AdminSidebarAside, AdminSidebarNoteP, AdminTopbarHeader, AdminWorkspaceBodyDiv, AdminWorkspaceDiv, ButtonSecondaryButton, DashboardMainMain, DashboardPanelAdminSelectionSection, DashboardPanelSection, EyebrowP, FieldLabel, AdminNavigationNav, SkipLinkA } from '../styles/components';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, UNSAFE_DataRouterContext, useLocation, useSearchParams } from 'react-router-dom';
+import { NavLink, Outlet, UNSAFE_DataRouterContext, useLocation, useSearchParams } from 'react-router-dom';
 import { loadCompetitions, type AdminCompetition } from '../api/adminDashboardApi';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { useAdminResource } from '../hooks/useAdminResource';
@@ -42,7 +43,7 @@ export function AdminLayout() {
   const selectedId = params.get('competition');
   const competition = state.status === 'ready' ? state.data.find((item) => item.id === selectedId) : undefined;
   if (auth.status !== 'authorized') return null;
-  return <div className="admin-workspace" onClickCapture={(event) => {
+  return <AdminWorkspaceDiv onClickCapture={(event) => {
     if (dataRouter) return;
     const link = event.target instanceof Element ? event.target.closest('a') : null;
     if (!link || link.getAttribute('href')?.startsWith('#') || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || link.target === '_blank') return;
@@ -51,36 +52,36 @@ export function AdminLayout() {
     }
   }}>
     {dataRouter && <AdminNavigationBlocker dirtyForms={dirtyForms} />}
-    <a className="skip-link" href="#admin-content">Skip to admin content</a>
-    <aside className="admin-sidebar">
-      <Link className="admin-brand" to={{ pathname: '/admin', search: location.search }}>Sargolsav<span>ADMIN WORKSPACE</span></Link>
-      <button className="admin-menu-toggle button-secondary" type="button" aria-expanded={menuOpen} aria-controls="admin-navigation" onClick={() => setMenuOpen(!menuOpen)}>Menu</button>
-      <nav id="admin-navigation" className={menuOpen ? 'admin-navigation is-open' : 'admin-navigation'} aria-label="Admin navigation">
+    <SkipLinkA href="#admin-content">Skip to admin content</SkipLinkA>
+    <AdminSidebarAside>
+      <AdminBrandLink to={{ pathname: '/admin', search: location.search }}>Sargolsav<span>ADMIN WORKSPACE</span></AdminBrandLink>
+      <AdminMenuToggleButtonSecondaryButton type="button" aria-expanded={menuOpen} aria-controls="admin-navigation" onClick={() => setMenuOpen(!menuOpen)}>Menu</AdminMenuToggleButtonSecondaryButton>
+      <AdminNavigationNav id="admin-navigation" mobileOpen={menuOpen} aria-label="Admin navigation">
         {adminDestinations.map(([path, label]) => <NavLink key={path} end to={{ pathname: `/admin${path ? `/${path}` : ''}`, search: location.search }} onClick={() => setMenuOpen(false)}>{label}</NavLink>)}
-        <Link className="admin-public-link" to="/">Public home ↗</Link>
-      </nav>
-      <p className="admin-sidebar-note">Competition administration<br />Sargolsav</p>
-    </aside>
-    <div className="admin-workspace-body">
-      <header className="admin-topbar">
-        <div><p className="eyebrow">Administration</p><h1>Sargolsav admin</h1></div>
-        <div className="admin-account"><span>Signed in as<br /><strong>{auth.identity.email ?? auth.identity.uid}</strong></span><button className="button-secondary" type="button" onClick={() => { if (mayLeave()) void logout().catch(() => {}); }}>Sign out</button></div>
-      </header>
-      <main id="admin-content" className="dashboard-main" tabIndex={-1}>
-        <section className="dashboard-panel admin-selection" aria-labelledby="selection-title">
+        <AdminPublicLinkLink to="/">Public home ↗</AdminPublicLinkLink>
+      </AdminNavigationNav>
+      <AdminSidebarNoteP>Competition administration<br />Sargolsav</AdminSidebarNoteP>
+    </AdminSidebarAside>
+    <AdminWorkspaceBodyDiv>
+      <AdminTopbarHeader>
+        <div><EyebrowP variant="topbar">Administration</EyebrowP><h1>Sargolsav admin</h1></div>
+        <AdminAccountDiv><span>Signed in as<br /><strong>{auth.identity.email ?? auth.identity.uid}</strong></span><ButtonSecondaryButton type="button" onClick={() => { if (mayLeave()) void logout().catch(() => {}); }}>Sign out</ButtonSecondaryButton></AdminAccountDiv>
+      </AdminTopbarHeader>
+      <DashboardMainMain id="admin-content" tabIndex={-1}>
+        <DashboardPanelAdminSelectionSection aria-labelledby="selection-title">
           <div><h2 id="selection-title">Your competition workspace</h2><p>Select a competition to view its overview. Active and historical competitions are available.</p></div>
-          {state.status === 'ready' && state.data.length > 0 && <div className="admin-picker"><label htmlFor="admin-competition">Competition</label>
+          {state.status === 'ready' && state.data.length > 0 && <AdminPickerDiv><FieldLabel htmlFor="admin-competition">Competition</FieldLabel>
             <select id="admin-competition" value={competition?.id ?? ''} onChange={(event) => selectCompetition(event.target.value)}><option value="">Select a competition</option>{state.data.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.status} · {item.code}</option>)}</select>
-          </div>}
-        </section>
+          </AdminPickerDiv>}
+        </DashboardPanelAdminSelectionSection>
         {state.status === 'loading' && <DashboardLoading>Loading competitions…</DashboardLoading>}
         {state.status === 'error' && <DashboardError retry={retry}>Competitions are unavailable. Check your connection and try again.</DashboardError>}
         {state.status === 'ready' && <>
-          {state.data.length === 0 ? <section className="dashboard-panel"><h2>No competitions yet</h2><p>Create your first competition on the Competitions screen.</p></section> :
-            !competition && <section className="dashboard-panel"><h2>{selectedId ? 'Competition unavailable' : 'Select a competition'}</h2><p>{selectedId ? 'This competition is no longer available. Choose another competition above.' : 'Choose a competition above to see its overview.'}</p></section>}
+          {state.data.length === 0 ? <DashboardPanelSection><h2>No competitions yet</h2><p>Create your first competition on the Competitions screen.</p></DashboardPanelSection> :
+            !competition && <DashboardPanelSection><h2>{selectedId ? 'Competition unavailable' : 'Select a competition'}</h2><p>{selectedId ? 'This competition is no longer available. Choose another competition above.' : 'Choose a competition above to see its overview.'}</p></DashboardPanelSection>}
           <Outlet context={{ competition, competitions: state.data, upsertCompetition, selectCompetition, setDirty }} />
         </>}
-      </main>
-    </div>
-  </div>;
+      </DashboardMainMain>
+    </AdminWorkspaceBodyDiv>
+  </AdminWorkspaceDiv>;
 }

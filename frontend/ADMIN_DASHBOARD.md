@@ -37,7 +37,7 @@ Navigation definitions live in `constants/adminNavigation.ts`.
 `AdminDashboard` composes `CompetitionOverview`; `AdminPlaceholder` supplies future
 screens with selected competition context via the layout outlet. `DashboardStates`
 contains reusable loading/retry panels. Styles use existing brand tokens in
-`styles/global.css`, with a distinct dark sidebar and responsive overview cards.
+`styles/components.ts`, with a distinct dark sidebar and responsive overview cards.
 
 `useAdminResource` binds results to the loader and retry attempt. Cleanup aborts
 requests; aborted results are ignored even when a transport ignores cancellation.

@@ -1,3 +1,4 @@
+import { ActionsDiv, AppButton, ButtonSecondaryButton, DashboardPanelSection, EyebrowP, FormErrorP, NoticeDiv } from '../../../styles/components';
 import { useState } from 'react';
 import { useAdminMutation } from '../../../hooks/useAdminMutation';
 import { useUnsavedAdminForm } from '../../../hooks/useUnsavedAdminForm';
@@ -19,20 +20,20 @@ export function LifecycleActions<T extends ReviewRecord>({ record, positions, ev
     const result = await mutation.run((signal) => transition(action, signal));
     if (result) { clean(); setConfirming(false); onConfirmed(result.data, action); }
   };
-  return <section className="dashboard-panel" aria-label={correction ? 'Correction review' : 'Result review'}>
-    <p className="eyebrow">{correction ? 'Private correction' : 'Saved result'} · {record.status}</p>
+  return <DashboardPanelSection aria-label={correction ? 'Correction review' : 'Result review'}>
+    <EyebrowP>{correction ? 'Private correction' : 'Saved result'} · {record.status}</EyebrowP>
     <WinnerSummary entries={record.entries} eventName={eventName} categoryName={categoryName} />
     {record.reviewed_by && <p>Reviewed by <bdi>{record.reviewed_by}</bdi>{record.reviewed_at && <> at <time dateTime={record.reviewed_at}>{record.reviewed_at}</time></>}</p>}
     {'published_by' in record && record.published_by && <p>Published by <bdi>{record.published_by}</bdi>{record.published_at && <> at <time dateTime={record.published_at}>{record.published_at}</time></>}</p>}
     {'applied_by' in record && record.applied_by && <p>Correction applied by <bdi>{record.applied_by}</bdi>{record.applied_at && <> at <time dateTime={record.applied_at}>{record.applied_at}</time></>}</p>}
-    {record.status !== 'published' && record.status !== 'applied' && problems.length > 0 && <div className="notice"><p>Review/publication requirements:</p><ul>{problems.map((problem) => <li key={problem}>{problem}</li>)}</ul></div>}
-    <div className="actions">
-      {record.status === 'draft' && <button type="button" disabled={mutation.pending || blocked || problems.length > 0} onClick={() => void execute('review')}>{mutation.pending ? 'Reviewing…' : correction ? 'Review correction' : 'Review result'}</button>}
-      {record.status === 'reviewed' && <><button type="button" className="button-secondary" disabled={mutation.pending || blocked} onClick={() => void execute('return-to-draft')}>Return to draft</button><button type="button" disabled={mutation.pending || blocked || problems.length > 0} onClick={() => setConfirming(true)}>{correction ? 'Publish correction' : 'Publish result'}</button></>}
-      <button type="button" className="button-secondary" disabled={mutation.pending} onClick={() => { clean(); reload(); }}>Reload {correction ? 'correction' : 'result'}</button>
-    </div>
-    {!confirming && mutation.error && <p role="alert" className="form-error">{mutation.error}{blocked && ' Reload the current server record before retrying. Nothing was overwritten.'}</p>}
+    {record.status !== 'published' && record.status !== 'applied' && problems.length > 0 && <NoticeDiv><p>Review/publication requirements:</p><ul>{problems.map((problem) => <li key={problem}>{problem}</li>)}</ul></NoticeDiv>}
+    <ActionsDiv>
+      {record.status === 'draft' && <AppButton type="button" disabled={mutation.pending || blocked || problems.length > 0} onClick={() => void execute('review')}>{mutation.pending ? 'Reviewing…' : correction ? 'Review correction' : 'Review result'}</AppButton>}
+      {record.status === 'reviewed' && <><ButtonSecondaryButton type="button" disabled={mutation.pending || blocked} onClick={() => void execute('return-to-draft')}>Return to draft</ButtonSecondaryButton><AppButton type="button" disabled={mutation.pending || blocked || problems.length > 0} onClick={() => setConfirming(true)}>{correction ? 'Publish correction' : 'Publish result'}</AppButton></>}
+      <ButtonSecondaryButton type="button" disabled={mutation.pending} onClick={() => { clean(); reload(); }}>Reload {correction ? 'correction' : 'result'}</ButtonSecondaryButton>
+    </ActionsDiv>
+    {!confirming && mutation.error && <FormErrorP role="alert">{mutation.error}{blocked && ' Reload the current server record before retrying. Nothing was overwritten.'}</FormErrorP>}
     {confirming && <PublishConfirmation entries={record.entries} eventName={eventName} categoryName={categoryName} correction={correction} pending={mutation.pending} blocked={blocked}
       error={mutation.error} onCancel={() => { clean(); setConfirming(false); }} onConfirm={() => void execute('publish')} />}
-  </section>;
+  </DashboardPanelSection>;
 }

@@ -1,3 +1,4 @@
+import { AdminSuccessP, BackLinkLink, CompetitionPickerNav, DashboardPanelDiv, ParticipantListUl, ResultCategorySection, ResultEditorSection, ResultEntryStatusSpan } from '../../../styles/components';
 import { useCallback, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { categoriesApi } from '../../../api/catalogApi';
@@ -32,23 +33,23 @@ export function ResultsWorkspace({ competitionId }: { competitionId: string }) {
     { ...row, status: 'draft', event_result_id: draft.id, updated_at: draft.updated_at } : row) }));
   return <>
     <p>Enter private drafts, verify saved winners, review results, and publish with confirmation. Published changes use separate private corrections.</p>
-    {notice?.event === eventId && <p role="status" className="admin-success">{notice.text}</p>}
-    {state.data.categories.length === 0 ? <div className="dashboard-panel"><h3>No categories yet</h3><p>Create categories and events before entering winners.</p></div> : <>
-      <nav className="competition-picker" aria-label="Result categories"><Link to={{ pathname: '/admin/results', search: participantSearch(params, { category: null, event: null, correction: null, resultView: null }) }}>All categories</Link>
+    {notice?.event === eventId && <AdminSuccessP role="status">{notice.text}</AdminSuccessP>}
+    {state.data.categories.length === 0 ? <DashboardPanelDiv><h3>No categories yet</h3><p>Create categories and events before entering winners.</p></DashboardPanelDiv> : <>
+      <CompetitionPickerNav aria-label="Result categories"><Link to={{ pathname: '/admin/results', search: participantSearch(params, { category: null, event: null, correction: null, resultView: null }) }}>All categories</Link>
         {state.data.categories.map((item) => <Link key={item.id} aria-current={categoryId === item.id ? 'page' : undefined} to={{ pathname: '/admin/results', search: participantSearch(params, { category: item.id, event: null, correction: null, resultView: null }) }}>{item.name}</Link>)}
-      </nav>
+      </CompetitionPickerNav>
       {categoryId && !category && <p role="alert">Category unavailable in this competition. Choose another category.</p>}
-      {state.data.categories.filter((item) => !categoryId || item.id === categoryId).map((item) => <section key={item.id} className="result-category" aria-label={`Results for ${item.name}`}><h3>{item.name}</h3>
-        {state.data.results.filter((row) => row.category_id === item.id).length === 0 ? <p>No events in this category.</p> : <ul className="participant-list">{state.data.results.filter((row) => row.category_id === item.id).map((row) => <li key={row.event_id}><Link aria-current={selected === row ? 'page' : undefined}
-          to={{ pathname: '/admin/results', search: participantSearch(params, { category: item.id, event: row.event_id, correction: null, resultView: null }) }}><span>{row.event_name}</span>{' '}<span className="result-entry-status">{labels[row.status]}{row.active_correction_id ? ' · Correction in Progress' : ''}</span></Link></li>)}</ul>}
-      </section>)}
+      {state.data.categories.filter((item) => !categoryId || item.id === categoryId).map((item) => <ResultCategorySection key={item.id} aria-label={`Results for ${item.name}`}><h3>{item.name}</h3>
+        {state.data.results.filter((row) => row.category_id === item.id).length === 0 ? <p>No events in this category.</p> : <ParticipantListUl>{state.data.results.filter((row) => row.category_id === item.id).map((row) => <li key={row.event_id}><Link aria-current={selected === row ? 'page' : undefined}
+          to={{ pathname: '/admin/results', search: participantSearch(params, { category: item.id, event: row.event_id, correction: null, resultView: null }) }}><span>{row.event_name}</span>{' '}<ResultEntryStatusSpan>{labels[row.status]}{row.active_correction_id ? ' · Correction in Progress' : ''}</ResultEntryStatusSpan></Link></li>)}</ParticipantListUl>}
+      </ResultCategorySection>)}
     </>}
     {eventId && !selected && <p role="alert">Event unavailable in the selected category.</p>}
-    {selected && category && <section className="result-editor" aria-label={`Result entry for ${selected.event_name}`}><h3>{selected.event_name}</h3>
+    {selected && category && <ResultEditorSection aria-label={`Result entry for ${selected.event_name}`}><h3>{selected.event_name}</h3>
       {selected.status === 'reviewed' || selected.status === 'published' || params.get('resultView') ?
         <ResultLifecycleWorkspace key={`${competitionId}/${category.id}/${selected.event_id}`} scope={{ competitionId, categoryId: category.id, eventId: selected.event_id }} onState={onState} notify={(text) => setNotice({ event: selected.event_id, text })} /> :
-        <>{selected.status === 'draft' && <Link className="back-link" to={{ pathname: '/admin/results', search: participantSearch(params, { resultView: 'review', correction: null }) }}>Review saved result</Link>}
+        <>{selected.status === 'draft' && <BackLinkLink to={{ pathname: '/admin/results', search: participantSearch(params, { resultView: 'review', correction: null }) }}>Review saved result</BackLinkLink>}
           <DraftManager key={`${competitionId}/${category.id}/${selected.event_id}`} scope={{ competitionId, categoryId: category.id, eventId: selected.event_id }} categoryName={category.name} onConfirmed={accept} /></>}
-    </section>}
+    </ResultEditorSection>}
   </>;
 }

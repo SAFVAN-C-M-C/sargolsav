@@ -1,3 +1,4 @@
+import { AdminFormDashboardPanelForm, AppButton, ButtonSecondaryButton, FormErrorP, FormInput, FieldLabel, SrOnlyLegend } from '../../../styles/components';
 import { useState } from 'react';
 import { resultLifecycleApi } from '../../../api/resultLifecycleApi';
 import { useAdminAuth } from '../../../hooks/useAdminAuth';
@@ -10,7 +11,7 @@ export function StartCorrectionForm({ result, scope, onStarted, reload }: { resu
   const { request } = useAdminAuth(); const mutation = useAdminMutation();
   const [reason, setReason] = useState(''); const [validation, setValidation] = useState('');
   const clean = useUnsavedAdminForm(Boolean(reason) || mutation.pending);
-  return <form className="admin-form dashboard-panel" aria-label="Start result correction" noValidate onSubmit={async (event) => {
+  return <AdminFormDashboardPanelForm aria-label="Start result correction" noValidate onSubmit={async (event) => {
     event.preventDefault(); if (mutation.pending || mutation.status === 409) return;
     if (!reason.trim() || reason.includes('\0')) { setValidation('A nonblank correction reason without null characters is required.'); return; }
     setValidation(''); const confirmed = await mutation.run(async (signal) => {
@@ -20,14 +21,14 @@ export function StartCorrectionForm({ result, scope, onStarted, reload }: { resu
     if (confirmed) { clean(); onStarted(confirmed.data); }
   }}>
     <h4>Start a private correction</h4><p>The current public result stays visible until the corrected result is reviewed and published. An existing workspace must be resumed; it is never reset.</p>
-    <fieldset disabled={mutation.pending}><legend className="sr-only">Correction reason</legend><label htmlFor="correction-reason">Correction reason</label>
-      <input id="correction-reason" value={reason} required aria-describedby={validation ? 'correction-reason-error' : undefined} onChange={(event) => setReason(event.target.value)} />
-      {validation && <p id="correction-reason-error" className="form-error" role="alert">{validation}</p>}
-      <button type="submit" disabled={mutation.status === 409}>{mutation.pending ? 'Starting…' : 'Start correction'}</button>
+    <fieldset disabled={mutation.pending}><SrOnlyLegend>Correction reason</SrOnlyLegend><FieldLabel htmlFor="correction-reason">Correction reason</FieldLabel>
+      <FormInput id="correction-reason" value={reason} required aria-describedby={validation ? 'correction-reason-error' : undefined} onChange={(event) => setReason(event.target.value)} />
+      {validation && <FormErrorP id="correction-reason-error" role="alert">{validation}</FormErrorP>}
+      <AppButton type="submit" disabled={mutation.status === 409}>{mutation.pending ? 'Starting…' : 'Start correction'}</AppButton>
     </fieldset>
-    {mutation.error && <p role="alert" className="form-error">{mutation.error} Reload the current result to resume existing work or refresh its version.</p>}
-    <button type="button" className="button-secondary" disabled={mutation.pending} onClick={() => {
+    {mutation.error && <FormErrorP role="alert">{mutation.error} Reload the current result to resume existing work or refresh its version.</FormErrorP>}
+    <ButtonSecondaryButton type="button" disabled={mutation.pending} onClick={() => {
       if (!reason || window.confirm('Discard the unsaved correction reason and reload the published result?')) { clean(); reload(); }
-    }}>Reload published result</button>
-  </form>;
+    }}>Reload published result</ButtonSecondaryButton>
+  </AdminFormDashboardPanelForm>;
 }

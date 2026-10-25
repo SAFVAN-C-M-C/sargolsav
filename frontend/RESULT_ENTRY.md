@@ -153,7 +153,7 @@ history/unload behavior still requires manual integration verification.
   `layouts/AdminLayout.tsx`: data-router guard integration and results route.
 - `hooks/useAdminMutation.ts`: exposes safe HTTP error status for conflict handling;
   existing form behavior is retained.
-- `styles/global.css`: wrapping rows, labelled inputs/selects and sticky Save bar.
+- `styles/components.ts`: wrapping rows, labelled inputs/selects and sticky Save bar.
 - `routes/ResultEntry.test.tsx`, `api/resultsApi.test.ts`, and existing dashboard
   navigation tests: feature and regression coverage.
 

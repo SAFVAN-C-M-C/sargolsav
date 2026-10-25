@@ -37,7 +37,7 @@ src/
     public/     Home, competition, and missing-page screens
   providers/    Context providers and authentication lifecycle
   routes/       Public route composition and route integration tests
-  styles/       Global application styles
+  styles/       MUI theme, document baseline, and reusable styled components
   types/        Shared domain, authentication, and resource contracts
   utils/        URL builders, error messages, and resource scheduling
   App.tsx       Root router and admin route composition
@@ -50,6 +50,16 @@ Use nested component folders when several components serve the same feature.
 API and hook tests live beside their modules; public navigation and screen
 integration tests live in `routes/__tests__`. Root routing and admin authentication
 tests remain in `App.test.tsx`.
+
+Styling uses Material UI with its default Emotion engine. `AppThemeProvider`
+provides the shared palette, typography, component defaults, and `CssBaseline`.
+Use MUI components and `sx` for local adjustments; use MUI's `styled()` API for
+reusable custom components in `styles/components.ts`. Use typed styling props
+for dynamic states and variants; filter them with `shouldForwardProp` so they
+do not reach the DOM. Components manage their own styles without manual
+`className` hooks. MUI and Emotion generate their internal classes. Keep document defaults
+in `styles/baseline.ts` and brand tokens in `styles/theme.ts`; do not add standalone
+CSS stylesheets.
 
 Run checks from the repository root:
 
