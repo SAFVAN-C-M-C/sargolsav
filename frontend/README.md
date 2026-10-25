@@ -6,6 +6,8 @@ See [Admin dashboard foundation](ADMIN_DASHBOARD.md) for protected routes, selec
 competition context, component structure, API dependencies and manual checks.
 See [Competition management and settings](COMPETITION_MANAGEMENT.md) for creation,
 editing, lifecycle transitions, shared points forms, validation and verification.
+See [Unit and Madrassa management](UNIT_MADRASSA_MANAGEMENT.md) for scoped CRUD,
+deletion safeguards, selection URLs, API dependencies and manual verification.
 
 ```text
 src/

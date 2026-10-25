@@ -12,6 +12,11 @@ TKT-09B adds competition creation/editing, lifecycle actions and shared points
 configuration. See the [competition management guide](frontend/COMPETITION_MANAGEMENT.md)
 for routes, API dependencies, validation, verification and known limitations.
 
+TKT-09C adds selected-competition unit and optional Madrassa management, including
+confirmed deletion with dependency safeguards. See the
+[unit and Madrassa guide](frontend/UNIT_MADRASSA_MANAGEMENT.md) for scoped routes,
+forms, API integrations, validation, verification and remaining limitations.
+
 TKT-08D adds visibility-aware public polling, retained-data background retries,
 and focused mobile improvements. See the [live-update guide](docs/TKT-08D-public-live-updates.md)
 for timing, request optimization, error behavior and manual checks.
@@ -232,7 +237,8 @@ verified UID and `admin: true` opens `/admin`. A 403 shows access denied; a 401
 refreshes the token once, then returns to login if still rejected. Network/server
 errors show a retryable unavailable state. The admin dashboard offers competition
 selection, overview counts, competition creation/editing, lifecycle actions and
-shared points configuration. Units, categories/events and results remain placeholders.
+shared points configuration, and unit/optional Madrassa management. Categories/events
+and results remain placeholders.
 The public `/` page stays accessible
 without Firebase configuration.
 

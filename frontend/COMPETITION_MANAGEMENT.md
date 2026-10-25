@@ -13,7 +13,8 @@
   to select a competition and do not request settings or offer a save.
 - Both screens link back to `/admin` and retain the selection query. List selection,
   sidebar navigation, reloads, and browser Back/Forward use the same URL context.
-- Units/Madrassas, categories/events and results remain future-feature placeholders.
+- [Units/Madrassas](UNIT_MADRASSA_MANAGEMENT.md) are implemented in TKT-09C;
+  categories/events and results remain future-feature placeholders.
   Existing public and authentication routes are unchanged.
 
 ## Existing API dependencies
