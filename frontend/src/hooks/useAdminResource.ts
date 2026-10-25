@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type Resource<T> = { status: 'loading' } | { status: 'error' } | { status: 'ready'; data: T };
 
@@ -15,5 +15,9 @@ export function useAdminResource<T>(load: (signal: AbortSignal) => Promise<T>) {
   }, [load, attempt]);
   // Hide previous data immediately, including the render before effect cleanup.
   const state: Resource<T> = result?.load === load && result.attempt === attempt ? result.value : { status: 'loading' };
-  return { state, retry: () => setAttempt((value) => value + 1) };
+  const update = useCallback((transform: (value: T) => T) => {
+    setResult((previous) => previous?.load === load && previous.attempt === attempt && previous.value.status === 'ready' ?
+      { ...previous, value: { status: 'ready', data: transform(previous.value.data) } } : previous);
+  }, [load, attempt]);
+  return { state, retry: () => setAttempt((value) => value + 1), update };
 }

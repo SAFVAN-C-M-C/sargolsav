@@ -238,3 +238,23 @@ main.dashboard-main { width: 100%; max-width: 80rem; padding: clamp(1rem, 3vw, 3
   .admin-account { width: 100%; justify-content: space-between; }
 }
 @media (max-width: 360px) { .overview-metrics { gap: .6rem; } .overview-metrics dd { font-size: 1.8rem; } }
+
+/* Competition forms keep fields stacked and labels visible at narrow widths. */
+.admin-form { margin-block: 1.25rem; }
+.admin-form fieldset { display: grid; gap: .65rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+.admin-form input { min-width: 0; }
+.admin-form h3 { margin: 0 0 .5rem; }
+.admin-form .actions { margin-top: .75rem; }
+.admin-form button { width: fit-content; max-width: 100%; }
+.admin-competition-list { display: grid; gap: .75rem; padding: 0; margin-block: 1.5rem; list-style: none; }
+.admin-competition-list li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin: 0; }
+.admin-competition-list li > div { flex: 1 1 14rem; min-width: 0; }
+.admin-competition-list h3 { margin: 0; }
+.admin-competition-list button { flex: 0 1 auto; }
+.admin-competition-list button[aria-pressed="true"] { background: var(--ink); color: white; }
+.admin-lifecycle { padding-block: 1rem; margin-block: 1rem; border-block: 1px solid var(--line); }
+.admin-success { padding: .8rem 1rem; background: var(--soft); border-left: 3px solid var(--accent); color: var(--ink); overflow-wrap: anywhere; }
+.points-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: .75rem; padding: .75rem 0; border-bottom: 1px solid var(--line); }
+.points-row > div { display: grid; gap: .5rem; min-width: 0; }
+.points-row button { margin-bottom: .4rem; }
+@media (max-width: 480px) { .points-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } .points-row button { grid-column: 1 / -1; } .admin-form .actions button { width: 100%; } }

@@ -12,7 +12,7 @@ export interface CompetitionOverview {
   events: number;
 }
 
-export type AdminRequest = (path: string, signal: AbortSignal) => Promise<unknown>;
+export type AdminRequest = import('../types/auth').AuthContextValue['request'];
 type Entity = { id: string; name: string };
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 const entity = (value: unknown): value is Entity => record(value) && typeof value.id === 'string' &&
