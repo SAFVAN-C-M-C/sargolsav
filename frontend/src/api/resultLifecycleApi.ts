@@ -59,6 +59,11 @@ export const resultLifecycleApi = {
     if (correction.status !== (action === 'review' ? 'reviewed' : action === 'publish' ? 'applied' : 'draft')) throw new Error('Unexpected correction transition');
     return correction;
   },
+  async saveSharedCorrection(request: AdminRequest, scope: ResultScope, correctionId: string, version: string, entries: WinnerPayload[], reason: string, signal: AbortSignal) {
+    const correction = parse(await request(`${path(scope)}/corrections/${pathId(correctionId)}/shared-positions`, signal, { method: 'PUT', body: { version, shared_positions: true, reason, entries } }), scope, correctionId) as ResultCorrection;
+    if (correction.status !== 'draft') throw new Error('Unexpected correction state');
+    return correction;
+  },
   async published(read: AuthContextValue['readPublished'], scope: ResultScope, signal: AbortSignal): Promise<PublishedSnapshot> {
     const value = await read(path(scope).replace('/api/admin/', '/api/'), signal);
     if (!record(value) || !record(value.result)) throw new Error('Invalid published projection');

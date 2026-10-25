@@ -41,6 +41,17 @@ test('configured positions include gaps and zero-point positions without hardcod
   expect(() => configuredPositions({ '01': 2 })).toThrow('Invalid configured positions');
 });
 
+test('explicit shared draft saves use the complete payload and retain approval metadata', async () => {
+  const request = vi.fn().mockResolvedValue({ draft: { id: '4', competition_id: '1', category_id: '2', event_id: '3', status: 'draft', version: 'next:token', updated_at: 'now', entries: [] } });
+  const entries = [{ candidate_code: '001', name: 'Winner', unit_id: '4', madrasa_id: null, position: 1 }];
+  await resultsApi.saveShared(request, scope, 'exact:token', entries, 'Judges confirmed equal marks', signal());
+  expect(request.mock.calls[0][0]).toBe('/api/admin/competitions/1/categories/2/events/3/result-draft/shared-positions');
+  expect(request.mock.calls[0][2]).toEqual({ method: 'PUT', body: { version: 'exact:token', shared_positions: true, reason: 'Judges confirmed equal marks', entries } });
+  request.mockRejectedValue(new AdminApiError(409, 'Draft changed'));
+  await expect(resultsApi.saveShared(request, scope, 'old', entries, 'Judges confirmed equal marks', signal())).rejects.toThrow('Draft changed');
+  expect(request).toHaveBeenCalledTimes(2); // No ordinary-save fallback.
+});
+
 test('winner validation accepts incomplete lists while enforcing lookup, identity and exact uniqueness', () => {
   const row: WinnerRow = { key: '1', candidate_code: '001', name: 'Winner', unit_id: '4', madrasa_id: '', position: '7', resolution: 'new' };
   expect(winnerPayload([row], ['1', '7'], ['4'])).toEqual([{ candidate_code: '001', name: 'Winner', unit_id: '4', madrasa_id: null, position: 7 }]);

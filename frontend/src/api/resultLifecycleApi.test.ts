@@ -28,6 +28,18 @@ test('wrong scopes, correction IDs and malformed successful transitions are reje
   request.mockResolvedValue({ result: result() }); await expect(resultLifecycleApi.transition(request, scope, 'publish', 'version', signal())).rejects.toThrow('Unexpected lifecycle transition');
 });
 
+test('explicit correction shared saves use the correction version and validate scope/status', async () => {
+  const request = vi.fn().mockResolvedValue({ correction: correction() });
+  const entries = [{ candidate_code: '001', name: 'Winner', unit_id: '7', madrasa_id: null, position: 1 }];
+  await resultLifecycleApi.saveSharedCorrection(request, scope, '8', 'correction:token', entries, 'Signed sheet confirms equal marks', signal());
+  expect(request.mock.calls[0][0]).toBe('/api/admin/competitions/1/categories/2/events/3/result/corrections/8/shared-positions');
+  expect(request.mock.calls[0][2]).toEqual({ method: 'PUT', body: { version: 'correction:token', shared_positions: true, reason: 'Signed sheet confirms equal marks', entries } });
+  request.mockResolvedValue({ correction: { ...correction(), competition_id: '9' } });
+  await expect(resultLifecycleApi.saveSharedCorrection(request, scope, '8', 'token', [], 'Signed sheet confirms removal', signal())).rejects.toThrow('Invalid lifecycle response');
+  request.mockResolvedValue({ correction: { ...correction(), status: 'reviewed' } });
+  await expect(resultLifecycleApi.saveSharedCorrection(request, scope, '8', 'token', [], 'Signed sheet confirms removal', signal())).rejects.toThrow('Unexpected correction state');
+});
+
 test('public projection reads use the existing frozen snapshot endpoint and validate scope', async () => {
   const read = vi.fn().mockResolvedValue({ result: { competition_id: '1', category_id: '2', event_id: '3', event_name: 'Event', category_name: 'Category', publication_id: '9', published_at: 'now', winners: [{ position: 1, candidate_code: '001', name: 'Frozen name', unit: { id: '7', name: 'Frozen unit' }, madrasa: null }] } });
   expect((await resultLifecycleApi.published(read, scope, signal())).winners[0].candidate_code).toBe('001'); expect(read.mock.calls[0][0]).toBe('/api/competitions/1/categories/2/events/3/result');

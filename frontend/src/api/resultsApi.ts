@@ -59,4 +59,7 @@ export const resultsApi = {
   async save(request: AdminRequest, scope: ResultScope, version: string, entries: WinnerPayload[], signal: AbortSignal) {
     return draft(await request(draftPath(scope), signal, { method: 'PUT', body: { version, entries } }), scope);
   },
+  async saveShared(request: AdminRequest, scope: ResultScope, version: string, entries: WinnerPayload[], reason: string, signal: AbortSignal) {
+    return draft(await request(`${draftPath(scope)}/shared-positions`, signal, { method: 'PUT', body: { version, shared_positions: true, reason, entries } }), scope);
+  },
 };
