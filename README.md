@@ -17,6 +17,10 @@ confirmed deletion with dependency safeguards. See the
 [unit and Madrassa guide](frontend/UNIT_MADRASSA_MANAGEMENT.md) for scoped routes,
 forms, API integrations, validation, verification and remaining limitations.
 
+TKT-09D adds configurable category/event management and display-order editing.
+See the [category and event guide](frontend/CATEGORY_EVENT_MANAGEMENT.md) for routes,
+API dependencies, validation, deletion safeguards and manual verification.
+
 TKT-08D adds visibility-aware public polling, retained-data background retries,
 and focused mobile improvements. See the [live-update guide](docs/TKT-08D-public-live-updates.md)
 for timing, request optimization, error behavior and manual checks.
@@ -237,8 +241,8 @@ verified UID and `admin: true` opens `/admin`. A 403 shows access denied; a 401
 refreshes the token once, then returns to login if still rejected. Network/server
 errors show a retryable unavailable state. The admin dashboard offers competition
 selection, overview counts, competition creation/editing, lifecycle actions and
-shared points configuration, and unit/optional Madrassa management. Categories/events
-and results remain placeholders.
+shared points configuration, unit/optional Madrassa management, and category/event
+management. Results remain a placeholder.
 The public `/` page stays accessible
 without Firebase configuration.
 

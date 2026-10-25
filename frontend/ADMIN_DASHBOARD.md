@@ -5,6 +5,7 @@ TKT-09B now implements competition management and shared points settings. See
 validation, unsaved-change behavior and current verification. This guide documents
 the original dashboard foundation and its read-only overview dependencies.
 TKT-09C implements [unit and Madrassa management](UNIT_MADRASSA_MANAGEMENT.md).
+TKT-09D implements [category and event management](CATEGORY_EVENT_MANAGEMENT.md).
 
 ## Routes and selection
 
@@ -12,7 +13,8 @@ TKT-09C implements [unit and Madrassa management](UNIT_MADRASSA_MANAGEMENT.md).
 - `/admin/competitions`, `/admin/settings`: competition management and shared points
   configuration, implemented in TKT-09B.
 - `/admin/units`: unit and optional Madrassa management, implemented in TKT-09C.
-- `/admin/categories`, `/admin/results`: future-feature placeholders.
+- `/admin/categories`: category/event management and ordering, implemented in TKT-09D.
+- `/admin/results`: future-feature placeholder.
   Unknown admin paths show an admin page-not-found placeholder.
 - `/admin/login`: existing Firebase sign-in flow.
 - All workspace routes accept `?competition=<decimal-string-id>`. Selection is

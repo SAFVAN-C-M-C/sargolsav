@@ -8,6 +8,8 @@ See [Competition management and settings](COMPETITION_MANAGEMENT.md) for creatio
 editing, lifecycle transitions, shared points forms, validation and verification.
 See [Unit and Madrassa management](UNIT_MADRASSA_MANAGEMENT.md) for scoped CRUD,
 deletion safeguards, selection URLs, API dependencies and manual verification.
+See [Category and event management](CATEGORY_EVENT_MANAGEMENT.md) for configured
+ordering, scoped forms, deletion protection, APIs and manual checks.
 
 ```text
 src/

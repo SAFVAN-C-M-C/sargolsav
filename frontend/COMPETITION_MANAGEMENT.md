@@ -14,7 +14,8 @@
 - Both screens link back to `/admin` and retain the selection query. List selection,
   sidebar navigation, reloads, and browser Back/Forward use the same URL context.
 - [Units/Madrassas](UNIT_MADRASSA_MANAGEMENT.md) are implemented in TKT-09C;
-  categories/events and results remain future-feature placeholders.
+  [categories/events](CATEGORY_EVENT_MANAGEMENT.md) are implemented in TKT-09D;
+  results remain a future-feature placeholder.
   Existing public and authentication routes are unchanged.
 
 ## Existing API dependencies

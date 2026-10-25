@@ -27,7 +27,8 @@ unit lists offer creation; a unit with zero Madrassas remains valid and manageab
 Madrassa counts are shown for the selected unit once its list has loaded, rather
 than making one count request per unit or displaying unknown counts as zero.
 Dashboard, competition management/settings, public routes and authentication behavior
-remain intact. Categories/events and results remain placeholders.
+remain intact. [Categories/events](CATEGORY_EVENT_MANAGEMENT.md) are implemented in
+TKT-09D; results remain a placeholder.
 
 ## Existing API integrations
 
