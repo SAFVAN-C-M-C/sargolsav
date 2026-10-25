@@ -18,5 +18,6 @@ export interface AuthContextValue {
   login(email: string, password: string): Promise<void>;
   logout(): Promise<void>;
   retry(): void;
+  request(path: string, signal: AbortSignal): Promise<unknown>;
 }
 

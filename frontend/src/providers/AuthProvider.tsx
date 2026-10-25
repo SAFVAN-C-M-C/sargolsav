@@ -1,7 +1,7 @@
 import { ADMIN_REFRESH_INTERVAL } from '../constants/auth';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { checkAdminAccess } from '../api/adminApi';
+import { checkAdminAccess, isInvalidSession } from '../api/adminApi';
 import { firebaseAuthClient } from '../lib/firebaseClient';
 import type { AuthClient, AuthUser } from '../types/auth';
 import { AuthContext } from '../contexts/authContext';
@@ -95,6 +95,7 @@ export function AuthProvider({ children, client = firebaseAuthClient, fetcher = 
 
   const logout = useCallback(async () => {
     checkRef.current.controller?.abort();
+    checkRef.current.sequence += 1;
     setState({ status: 'loading' });
     try {
       await client.signOut();
@@ -111,8 +112,42 @@ export function AuthProvider({ children, client = firebaseAuthClient, fetcher = 
     else window.location.reload();
   }, [check]);
 
+  const request = useCallback(async (path: string, signal: AbortSignal): Promise<unknown> => {
+    const user = userRef.current;
+    if (!user || state.status !== 'authorized' || !path.startsWith('/api/admin/')) {
+      throw new Error('Admin access required');
+    }
+    const sequence = checkRef.current.sequence;
+    const current = () => !signal.aborted && userRef.current === user && sequence === checkRef.current.sequence;
+    const send = async (refresh: boolean) => {
+      const token = await user.getIdToken(refresh);
+      signal.throwIfAborted();
+      if (!current()) throw new Error('Session changed');
+      return fetcher(path, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }, cache: 'no-store', signal });
+    };
+    try {
+      let response = await send(false);
+      if (response.status === 401 && current()) response = await send(true);
+      if (!current()) throw new Error('Session changed');
+      if (response.status === 401 || response.status === 403) {
+        checkRef.current.sequence += 1;
+        setState({ status: response.status === 401 ? 'unauthenticated' : 'forbidden' });
+        if (response.status === 401) void client.signOut().catch(() => {});
+      }
+      if (!response.ok) throw new Error('Admin request failed');
+      return await response.json();
+    } catch (error) {
+      if (current() && isInvalidSession(error)) {
+        checkRef.current.sequence += 1;
+        setState({ status: 'unauthenticated' });
+        void client.signOut().catch(() => {});
+      }
+      throw error;
+    }
+  }, [client, fetcher, state.status]);
+
   return (
-    <AuthContext.Provider value={{ state, login, logout, retry }}>
+    <AuthContext.Provider value={{ state, login, logout, retry, request }}>
       {children}
     </AuthContext.Provider>
   );
