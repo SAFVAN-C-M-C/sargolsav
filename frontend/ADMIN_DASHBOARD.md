@@ -6,6 +6,8 @@ validation, unsaved-change behavior and current verification. This guide documen
 the original dashboard foundation and its read-only overview dependencies.
 TKT-09C implements [unit and Madrassa management](UNIT_MADRASSA_MANAGEMENT.md).
 TKT-09D implements [category and event management](CATEGORY_EVENT_MANAGEMENT.md).
+TKT-09E implements [private result draft entry](RESULT_ENTRY.md) and production
+Back/Forward unsaved-change protection.
 
 ## Routes and selection
 
@@ -14,7 +16,7 @@ TKT-09D implements [category and event management](CATEGORY_EVENT_MANAGEMENT.md)
   configuration, implemented in TKT-09B.
 - `/admin/units`: unit and optional Madrassa management, implemented in TKT-09C.
 - `/admin/categories`: category/event management and ordering, implemented in TKT-09D.
-- `/admin/results`: future-feature placeholder.
+- `/admin/results`: event status browsing, candidate lookup and editable private drafts.
   Unknown admin paths show an admin page-not-found placeholder.
 - `/admin/login`: existing Firebase sign-in flow.
 - All workspace routes accept `?competition=<decimal-string-id>`. Selection is

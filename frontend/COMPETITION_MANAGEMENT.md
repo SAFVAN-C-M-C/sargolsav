@@ -15,7 +15,7 @@
   sidebar navigation, reloads, and browser Back/Forward use the same URL context.
 - [Units/Madrassas](UNIT_MADRASSA_MANAGEMENT.md) are implemented in TKT-09C;
   [categories/events](CATEGORY_EVENT_MANAGEMENT.md) are implemented in TKT-09D;
-  results remain a future-feature placeholder.
+  [result draft entry](RESULT_ENTRY.md) is implemented in TKT-09E.
   Existing public and authentication routes are unchanged.
 
 ## Existing API dependencies
@@ -93,10 +93,10 @@ write already accepted by the backend.
 Unsaved forms register with `AdminLayout`. The layout confirms before in-app links,
 competition selection or logout discard edits, and installs a native beforeunload
 warning for reload/tab close. Same-page skip links are exempt. Browser-managed
-warnings depend on browser interaction rules. **SPA browser Back/Forward and
-external programmatic navigation are not blocked** by the existing BrowserRouter;
-unsaved drafts can be lost on those paths. No browser-history interception or
-router restructuring is introduced in this ticket.
+warnings depend on browser interaction rules. TKT-09E's production data-router
+guard now also covers SPA Back/Forward and programmatic navigation for registered
+forms; see [result entry navigation protection](RESULT_ENTRY.md). Standalone
+declarative-router embeddings retain the earlier link/unload fallback.
 
 Background Firebase access checks keep the current authorized form mounted while
 verification is pending, then remove it on authorization failure. Read/write
@@ -141,7 +141,7 @@ No visual desktop/mobile or live Firebase verification is claimed.
    confirm that no defaults are supplied.
 6. Edit without saving. Cancel selection, link navigation, logout and tab-close/
    reload prompts. Confirm fields survive cancelled prompts. Exercise the documented
-   Back/Forward limitation. Check that a background focus access check retains edits.
+   Back/Forward protection from TKT-09E. Check that a background focus access check retains edits.
 7. Simulate list/detail/settings load failures and retry. Delay a response, switch
    competitions and confirm old reads/writes cannot replace the new selection.
 8. Exercise revoked/expired tokens and non-admin access. Confirm protected forms

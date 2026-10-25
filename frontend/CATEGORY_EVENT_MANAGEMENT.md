@@ -28,7 +28,7 @@ Event counts appear for the selected category after its event list loads; no
 per-category count fan-out or fabricated zero counts are used.
 
 Public routes, admin login, dashboard, competitions/settings and units/Madrassas
-remain intact. Results remain an explicit future-feature placeholder.
+remain intact. [Result draft entry](RESULT_ENTRY.md) is implemented in TKT-09E.
 
 ## Existing API dependencies
 
@@ -100,10 +100,10 @@ The existing request utility consumes successful 204 deletion responses without
 trying to parse JSON. Failed deletes retain the record and provide retryable actions.
 
 Dirty/pending forms reuse the established warnings for in-app links, selection,
-Cancel, logout and native beforeunload behavior for refresh/tab close. **SPA browser
-Back/Forward and external programmatic navigation remain unblocked** under the
-existing BrowserRouter; unsaved edits may be lost on those paths. This ticket does
-not restructure routing or add browser-history interception.
+Cancel, logout and native beforeunload behavior for refresh/tab close. TKT-09E's
+production data-router guard now covers SPA Back/Forward and programmatic
+navigation too; see [result entry](RESULT_ENTRY.md). Standalone declarative-router
+embeddings retain the earlier link/unload fallback.
 
 Competition/category/event components are keyed by their scoped selections.
 Returned list/detail/mutation records are checked for expected competition, parent
@@ -167,7 +167,7 @@ There are no new dependencies, animations or unrelated architectural refactors.
 8. Exercise list/detail loading, empty, API/network errors and retry. Try a child ID
    belonging to another category and verify it is not exposed in the current scope.
 9. Edit without saving, then cancel link, Cancel, selection, logout and unload
-   warnings. Check the documented SPA Back/Forward limitation.
+   warnings. Check the production SPA Back/Forward protection added in TKT-09E.
 10. Check signed-out, non-admin and expired/revoked sessions. Verify protected forms
     disappear; inspect status codes without copying bearer tokens to logs.
 11. At 320px and desktop widths, inspect long names/order badges, stacked forms,

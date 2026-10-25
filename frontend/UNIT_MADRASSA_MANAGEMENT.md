@@ -28,7 +28,7 @@ Madrassa counts are shown for the selected unit once its list has loaded, rather
 than making one count request per unit or displaying unknown counts as zero.
 Dashboard, competition management/settings, public routes and authentication behavior
 remain intact. [Categories/events](CATEGORY_EVENT_MANAGEMENT.md) are implemented in
-TKT-09D; results remain a placeholder.
+TKT-09D; [result draft entry](RESULT_ENTRY.md) is implemented in TKT-09E.
 
 ## Existing API integrations
 
@@ -123,10 +123,10 @@ authorization failures still remove protected content.
 
 Dirty forms and pending writes use the established layout warnings for links,
 competition selection, Cancel and logout, plus the native beforeunload warning for
-reload/tab close. **SPA Back/Forward and external programmatic navigation are not
-blocked** by the existing BrowserRouter. Unsaved edits can be lost on those paths;
-this ticket does not change the router or intercept browser history. Name edits
-also follow the existing backend's last-writer behavior without version checking.
+reload/tab close. TKT-09E's production data-router guard now covers SPA Back/Forward
+and programmatic navigation too; see [result entry](RESULT_ENTRY.md). Standalone
+declarative-router embeddings retain the earlier fallback. Name edits still follow
+the existing backend's last-writer behavior without version checking.
 
 ## Mobile and manual verification
 
@@ -156,7 +156,7 @@ unnecessary animation or horizontal-scroll tables are introduced.
    Confirm late responses never replace new data or change its selected URL.
 9. Check loading, empty, network/server failures and retry for every list/detail.
    Edit without saving and cancel link/selection/Cancel/logout/unload prompts.
-   Exercise the documented browser-history limitation.
+   Exercise the production browser-history protection added in TKT-09E.
 10. Verify signed-out, non-admin, expired and revoked sessions remove protected
     access. Check status codes and headers without copying ID tokens into logs.
 11. At 320px and desktop widths, inspect long names, form and list wrapping, keyboard
