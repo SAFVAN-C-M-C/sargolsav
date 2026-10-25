@@ -52,6 +52,11 @@ function setup(path = base, fetcher = api()) {
   render(<StrictMode><MemoryRouter initialEntries={[path]}><AppRoutes client={client} fetcher={fetcher as typeof fetch} /><Probe /></MemoryRouter></StrictMode>);
   return { user: userEvent.setup(), fetcher, client };
 }
+async function chooseCategory(user: ReturnType<typeof userEvent.setup>, value: string) {
+  await user.click(screen.getByRole('button', { name: 'View competition or category' }));
+  const label = value ? categories.find((item) => item.id === value)!.name : 'Overall units · all categories';
+  await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: value ? label : /Overall units/ }));
+}
 async function rankingRows(kind = 'Unit rankings') {
   return within(await screen.findByRole('list', { name: kind })).getAllByRole('listitem');
 }
@@ -99,17 +104,17 @@ test('candidate direct links retain names, external codes, units, optional Madra
 test('category and type selectors use scoped URLs, retain the selected type, and support back and forward', async () => {
   const { user } = setup();
   await rankingRows();
-  await user.selectOptions(screen.getByLabelText('View competition or category'), '2');
+  await chooseCategory(user, '2');
   await rankingRows();
   expect(screen.getByTestId('path').textContent).toBe(`${base}/categories/2/units`);
   (screen.getByRole('link', { name: 'Candidates' })).focus();
   await user.keyboard('{Enter}');
   await screen.findByRole('heading', { name: 'Zahra First' });
-  await user.selectOptions(screen.getByLabelText('View competition or category'), '3');
+  await chooseCategory(user, '3');
   await screen.findByRole('heading', { name: 'Senior Candidate' });
   expect(screen.getByTestId('path').textContent).toBe(`${base}/categories/3/candidates`);
   expect(screen.queryByRole('heading', { name: 'Zahra First' })).toBeNull();
-  await user.selectOptions(screen.getByLabelText('View competition or category'), '');
+  await chooseCategory(user, '');
   await rankingRows();
   expect(screen.getByTestId('path').textContent).toBe(base);
   await user.click(screen.getByRole('button', { name: 'Browser back' }));
@@ -213,7 +218,7 @@ test('late responses cannot replace newer category selections', async () => {
   fetcher.mockImplementation((url, options) => url === juniorUnits ? new Promise((resolve) => { finish = resolve; }) : original(url, options));
   const { user } = setup(`${base}/categories/2/units`, fetcher);
   await waitFor(() => expect(finish).toBeTypeOf('function'));
-  await user.selectOptions(screen.getByLabelText('View competition or category'), '3');
+  await chooseCategory(user, '3');
   await screen.findByRole('heading', { name: 'Senior Unit' });
   await act(async () => finish(response({ leaderboard: units })));
   expect(screen.getByTestId('path').textContent).toBe(`${base}/categories/3/units`);
@@ -228,9 +233,9 @@ test('reopening standings requests a fresh snapshot without duplicate StrictMode
   const { user } = setup(base, fetcher);
   await rankingRows();
   changed = true;
-  await user.selectOptions(screen.getByLabelText('View competition or category'), '2');
+  await chooseCategory(user, '2');
   await rankingRows();
-  await user.selectOptions(screen.getByLabelText('View competition or category'), '');
+  await chooseCategory(user, '');
   const rows = await rankingRows();
   expect(within(rows[0]).getByText('42')).toBeTruthy();
   expect(fetcher.mock.calls.filter(([url]) => url === endpoint)).toHaveLength(2);

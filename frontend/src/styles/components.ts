@@ -355,9 +355,9 @@ export const StateMarkSpan = styled('span')(({ theme }) => `
 `);
 
 export const RefreshStatusDiv = styled('div')(({ theme }) => `
-  & { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 5rem; color: ${theme.palette.text.secondary}; font-size: .8rem; }
+  & { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-block: 1rem; color: ${theme.palette.text.secondary}; font-size: .75rem; }
   & p { flex: 1; margin: 0; overflow-wrap: anywhere; }
-  & button { flex-shrink: 0; min-height: 44px; font-size: .8rem; }
+  & button { flex-shrink: 0; min-height: 44px; border-radius: 24px; padding-inline: .8rem; font-size: .75rem; }
 `);
 
 export const LeaderboardNoteP = styled('p')(({ theme }) => `
@@ -370,14 +370,14 @@ export const PublicIntroP = styled('p')(({ theme }) => `
 
 export const LeaderboardControlsDiv = styled('div')(({ theme }) => `
   & { margin-block: 1.5rem; display: grid; gap: .75rem; min-width: 0; }
-  & select { width: 100%; min-width: 0; min-height: 48px; padding: .7rem; color: ${theme.palette.text.primary}; background: ${theme.palette.background.paper}; border: 1px solid #9caea5; border-radius: .75rem; font: inherit; }
-  & select:focus-visible { outline: 3px solid ${theme.palette.secondary.main}; outline-offset: 3px; }
+  & { padding: 1rem; border: 1px solid ${theme.palette.divider}; border-radius: 24px; background: #edf3ed; }
 `);
 
 export const RankingTypesNav = styled('nav')(({ theme }) => `
-  & { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
-  & a { display: grid; place-items: center; min-height: 48px; border: 1px solid ${theme.palette.divider}; border-radius: .75rem; background: ${theme.palette.background.paper}; text-decoration: none; font-weight: 650; }
-  & a[aria-current="page"] { background: ${theme.palette.text.primary}; color: white; border-color: ${theme.palette.text.primary}; }
+  & { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem; padding: .3rem; border-radius: 15px; background: #dfe9e0; }
+  & a { display: grid; place-items: center; min-height: 44px; border-radius: 11px; color: ${theme.palette.text.secondary}; text-decoration: none; font-size: .85rem; font-weight: 650; }
+  & a[aria-current="page"] { background: ${theme.palette.background.paper}; color: ${theme.palette.primary.main}; box-shadow: 0 2px 8px #193f370d; }
+  & a:focus-visible { outline: 3px solid ${theme.palette.secondary.main}; outline-offset: 2px; }
 `);
 
 export const RankingListOl = styled('ol')`
@@ -453,8 +453,12 @@ export const PublicTabsNav = styled('nav')(({ theme }) => `
   & a { display: flex; justify-content: center; align-items: center; gap: .5rem; min-height: 48px; border-radius: .75rem; color: ${theme.palette.text.secondary}; font-weight: 650; text-decoration: none; }
   & a[aria-current="page"] { color: ${theme.palette.text.primary}; background: ${theme.palette.background.paper}; box-shadow: 0 2px 6px #193f3710; }
   & a:hover { color: ${theme.palette.text.primary}; background: #ffffffa0; }
-  @media (max-width: 360px) { & a > span { display: none; } }
-  @media (max-width: 360px) { & a { font-size: .85rem; } }
+  & svg { width: 21px; height: 21px; }
+  @media (max-width: 679px) {
+    & { position: fixed; inset: auto 0 0; z-index: 20; margin: 0; padding: .45rem 1rem max(.45rem, env(safe-area-inset-bottom)); gap: 1rem; border-radius: 24px 24px 0 0; border: 1px solid ${theme.palette.divider}; border-bottom: 0; background: #ffffffed; backdrop-filter: blur(18px); box-shadow: 0 -8px 32px #193f370a; }
+    & a { flex-direction: column; gap: .3rem; min-height: 58px; padding: .35rem; font-size: .72rem; }
+    & a[aria-current="page"] { color: ${theme.palette.primary.main}; background: ${theme.palette.action.hover}; box-shadow: none; }
+  }
 `);
 
 export const CountBadgeSpan = styled('span')(({ theme }) => `
@@ -565,8 +569,8 @@ export const AdminWorkspaceDiv = styled('div')`
 `;
 
 export const SkipLinkA = styled('a')(({ theme }) => `
-  & { position: fixed; top: -8rem; left: 1rem; z-index: 10; padding: 1rem; background: ${theme.palette.background.paper}; }
-  &:focus { top: 1rem; }
+  & { position: fixed; top: -8rem; left: 1rem; z-index: 30; padding: 1rem; background: ${theme.palette.background.paper}; }
+  &:focus { top: max(1rem, env(safe-area-inset-top)); }
 `);
 
 export const AdminSidebarAside = styled('aside')(({ theme }) => `
@@ -659,10 +663,11 @@ export const PublicHeaderHeader = styled('header')(({ theme }) => `
   & { width: min(100%, 68rem); margin-inline: auto; padding-inline: clamp(1rem, 4vw, 3rem); }
   & { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
   & { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid ${theme.palette.divider}; }
+  & { position: sticky; top: env(safe-area-inset-top); z-index: 10; padding-block: .75rem; background: #f4f7f3ed; backdrop-filter: blur(16px); }
 `);
 
 export const BrandLink = styled(Link)`
-  & { display: block; flex: 0 1 clamp(6.5rem, 28vw, 10rem); min-width: 0; }
+  & { display: block; flex: 0 1 clamp(5rem, 22vw, 7rem); min-width: 0; }
 `;
 
 export const BrandLogoImg = styled('img')`
@@ -670,7 +675,7 @@ export const BrandLogoImg = styled('img')`
 `;
 
 export const HeaderLogoImg = styled('img')`
-  & { display: block; width: clamp(6.5rem, 28vw, 10rem); min-width: 0; height: auto; object-fit: contain; }
+  & { display: block; width: clamp(5rem, 22vw, 7rem); min-width: 0; height: auto; object-fit: contain; }
 `;
 
 export const PublicMainMain = styled('main')`
@@ -678,9 +683,10 @@ export const PublicMainMain = styled('main')`
   & { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
   & { flex: 1; padding-block: 2rem 3.5rem; min-width: 0; }
   &:focus { outline: none; }
-  & h1 { font-size: clamp(2rem, 6vw, 3.6rem); letter-spacing: -.045em; max-width: 23ch; }
+  & h1 { font-size: clamp(1.8rem, 6vw, 3rem); letter-spacing: -.045em; max-width: 23ch; }
   & h2 { font-size: clamp(1.35rem, 4vw, 1.8rem); letter-spacing: -.025em; overflow-wrap: anywhere; }
-  @media (min-width: 680px) { & { padding-block: 3rem 5rem; } }
+  @media (min-width: 680px) { & { padding-block: 2rem 4rem; } }
+  @media (max-width: 679px) { & { padding-top: 1rem; } }
 `;
 
 export const PublicFooterFooter = styled('footer')(({ theme }) => `
@@ -688,6 +694,7 @@ export const PublicFooterFooter = styled('footer')(({ theme }) => `
   & { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
   & { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; padding-block: 1rem; border-top: 1px solid ${theme.palette.divider}; color: ${theme.palette.text.secondary}; font-size: .75rem; }
   & span { overflow-wrap: anywhere; }
+  @media (max-width: 679px) { & { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)); } }
 `);
 
 export const AdminCompetitionListUl = styled('ul')(({ theme }) => `
@@ -717,5 +724,6 @@ export const AppForm = styled('form')`
 `;
 
 export const PublicBackLink = styled(Link)`
-  & { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: .8rem; font-size: .85rem; font-weight: 600; }
+  & { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: .8rem; padding: .4rem .75rem; border-radius: 14px; background: #eaf1eb; text-decoration: none; font-size: .8rem; font-weight: 650; }
+  &:hover { background: #dfeae1; }
 `;

@@ -1,4 +1,4 @@
-import { EyebrowP, FieldLabel, LeaderboardControlsDiv, LeaderboardNoteP, PublicIntroP, RankingTypesNav, SectionHeadingDiv } from '../../../styles/components';
+import { EyebrowP, LeaderboardControlsDiv, LeaderboardNoteP, PublicIntroP, RankingTypesNav, SectionHeadingDiv } from '../../../styles/components';
 import { useMemo } from 'react';
 import { Link, NavLink, useNavigate, useOutletContext } from 'react-router-dom';
 import { PublicApiError } from '../../../api/publicErrors';
@@ -9,6 +9,7 @@ import { leaderboardPath } from '../../../utils/publicPaths';
 import { EmptyState, ErrorState, LoadingCards } from '../../common/PublicStates';
 import { RankingList } from './RankingList';
 import { RefreshStatus } from '../../common/RefreshStatus';
+import { PublicChoiceField } from '../navigation/PublicChoiceField';
 
 function Standings({ competitionId, categoryId, type }: {
   competitionId: string; categoryId?: string; type: LeaderboardType;
@@ -41,13 +42,10 @@ export function Leaderboards({ competitionId, categories, categoryId, type }: {
     <SectionHeadingDiv><div><EyebrowP variant="publicHeading">Competition standings</EyebrowP>
       <h2 id="leaderboard-title">{category ? `${category.name} · ${type === 'units' ? 'Unit' : 'Candidate'} rankings` : 'Overall unit rankings'}</h2></div></SectionHeadingDiv>
     <PublicIntroP>Points from published results. Equal scores share a rank.</PublicIntroP>
-    <LeaderboardControlsDiv><FieldLabel htmlFor="leaderboard-category">View competition or category</FieldLabel>
-      <select id="leaderboard-category" value={categoryId ?? ''} onChange={(event) => {
-        navigate(leaderboardPath(competitionId, event.target.value || undefined, type));
-      }}>
-        <option value="">Overall units · all categories</option>
-        {categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-      </select>
+    <LeaderboardControlsDiv>
+      <PublicChoiceField label="View competition or category" value={categoryId ?? ''}
+        options={[{ value: '', label: 'Overall units · all categories', description: 'The whole competition, together' }, ...categories.map((item) => ({ value: item.id, label: item.name }))]}
+        onChange={(value) => navigate(leaderboardPath(competitionId, value || undefined, type))} />
       {category ? <RankingTypesNav aria-label="Ranking type">
         <NavLink to={leaderboardPath(competitionId, categoryId, 'units')}>Units</NavLink>
         <NavLink to={leaderboardPath(competitionId, categoryId, 'candidates')}>Candidates</NavLink>

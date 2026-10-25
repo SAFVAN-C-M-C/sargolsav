@@ -61,6 +61,13 @@ do not reach the DOM. Components manage their own styles without manual
 in `styles/baseline.ts` and brand tokens in `styles/theme.ts`; do not add standalone
 CSS stylesheets.
 
+The public UI uses a bottom navigation bar on phones and an in-page tab bar on
+larger screens. `PublicChoiceField` opens a MUI dialog as a bottom sheet on phones
+and a centered picker on desktop. It supports keyboard navigation, focus return,
+and searchable lists when more than eight choices are available. Public filters
+continue to use scoped URLs, so browser back/forward and shared links retain the
+selected competition and category.
+
 Run checks from the repository root:
 
 ```sh
