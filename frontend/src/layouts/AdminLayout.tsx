@@ -29,6 +29,7 @@ export function AdminLayout() {
     if (id === (params.get('competition') ?? '') || !mayLeave()) return;
     const next = new URLSearchParams(params);
     next.delete('unit'); next.delete('madrasa'); next.delete('participantForm');
+    next.delete('category'); next.delete('event'); next.delete('catalogForm');
     if (id) next.set('competition', id); else next.delete('competition');
     setParams(next);
   };

@@ -272,3 +272,7 @@ main.dashboard-main { width: 100%; max-width: 80rem; padding: clamp(1rem, 3vw, 3
 .participant-detail h4 { font-size: 1.1rem; margin-block: .5rem; }
 .button-danger { background: #a32929; border-color: #a32929; }
 .button-danger:hover:not(:disabled) { background: #7b1d1d; }
+
+.catalog-list-order { color: var(--muted); font-size: .8rem; }
+.catalog-list a { flex-wrap: wrap; justify-content: space-between; gap: .5rem 1rem; }
+.catalog-list a > span:first-child { min-width: 0; overflow-wrap: anywhere; }
