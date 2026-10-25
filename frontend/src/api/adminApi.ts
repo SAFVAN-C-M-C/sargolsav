@@ -2,7 +2,7 @@ import type { AdminIdentity, AdminAccess } from '../types/admin';
 import { INVALID_SESSION_CODES } from '../constants/auth';
 import type { AuthUser } from '../types/auth';
 
-function isInvalidSession(error: unknown): boolean {
+export function isInvalidSession(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error &&
     INVALID_SESSION_CODES.has(String(error.code));
 }

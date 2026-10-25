@@ -1,16 +1,17 @@
+import { AppButton, LoadingCardsDiv, PublicStateSection, LoadingSkeleton, SrOnlySpan, StateMarkSpan } from '../../styles/components';
 export function LoadingCards({ label = 'Loading competitions and categories' }: { label?: string }) {
-  return <div role="status" aria-label={label} className="loading-cards">
-    <span className="sr-only">{label}…</span>
-    {[1, 2, 3].map((key) => <div className="skeleton" aria-hidden="true" key={key} />)}
-  </div>;
+  return <LoadingCardsDiv role="status" aria-label={label}>
+    <SrOnlySpan>{label}…</SrOnlySpan>
+    {[1, 2, 3].map((key) => <LoadingSkeleton aria-hidden="true" key={key} />)}
+  </LoadingCardsDiv>;
 }
 
 export function EmptyState({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="public-state"><span className="state-mark" aria-hidden="true">◇</span>
-    <h2>{title}</h2><p>{children}</p></section>;
+  return <PublicStateSection><StateMarkSpan aria-hidden="true">◇</StateMarkSpan>
+    <h2>{title}</h2><p>{children}</p></PublicStateSection>;
 }
 
 export function ErrorState({ retry }: { retry: () => void }) {
-  return <section className="public-state" role="alert"><h2>Unable to load this page</h2>
-    <p>Check your connection and try again.</p><button onClick={retry}>Try again</button></section>;
+  return <PublicStateSection role="alert"><h2>Unable to load this page</h2>
+    <p>Check your connection and try again.</p><AppButton onClick={retry}>Try again</AppButton></PublicStateSection>;
 }

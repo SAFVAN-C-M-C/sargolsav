@@ -1,3 +1,4 @@
+import { CardArrowSpan, CategoryCardLink, CategoryCopySpan, CategoryGridUl, CategoryNumberSpan, CountBadgeSpan, EyebrowP, PublicIntroP, SectionHeadingDiv } from '../../../styles/components';
 import { Link } from 'react-router-dom';
 import type { Category } from '../../../types/public';
 import { resultsPath } from '../../../utils/publicPaths';
@@ -16,21 +17,21 @@ export function CategoryBrowser({ competitionId, categories, categoryId, eventId
     if (!category) return <EmptyState title="Category not found">
       This category is not available in this competition. <Link to={base}>Browse categories</Link>.
     </EmptyState>;
-    return <>{!eventId && <h2 className="section-title">{category.name}</h2>}
+    return <>{!eventId && <h2>{category.name}</h2>}
       <EventBrowser key={eventId ?? 'listing'} competitionId={competitionId} categoryId={categoryId} eventId={eventId} /></>;
   }
   return <section aria-labelledby="categories-title">
-    <div className="section-heading"><div><p className="eyebrow">Find your category</p>
+    <SectionHeadingDiv><div><EyebrowP variant="publicHeading">Find your category</EyebrowP>
       <h2 id="categories-title">Browse results</h2></div>
-      <span className="count-badge">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
-    </div>
-    <p className="public-intro">Choose a category to explore the competition.</p>
+      <CountBadgeSpan>{categories.length} {categories.length === 1 ? 'category' : 'categories'}</CountBadgeSpan>
+    </SectionHeadingDiv>
+    <PublicIntroP>Choose a category to explore the competition.</PublicIntroP>
     {categories.length === 0 ? <EmptyState title="Categories are on the way">Categories have not been added to this competition yet.</EmptyState> :
-      <ul className="category-grid">{categories.map((item, index) => <li key={item.id}>
-        <Link className="category-card" to={`${base}/categories/${encodeURIComponent(item.id)}`}>
-          <span className="category-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-          <span className="category-copy"><strong>{item.name}</strong><span>Explore category</span></span>
-          <span className="card-arrow" aria-hidden="true">↗</span>
-        </Link></li>)}</ul>}
+      <CategoryGridUl>{categories.map((item, index) => <li key={item.id}>
+        <CategoryCardLink to={`${base}/categories/${encodeURIComponent(item.id)}`}>
+          <CategoryNumberSpan aria-hidden="true">{String(index + 1).padStart(2, '0')}</CategoryNumberSpan>
+          <CategoryCopySpan><strong>{item.name}</strong><span>Explore category</span></CategoryCopySpan>
+          <CardArrowSpan aria-hidden="true">↗</CardArrowSpan>
+        </CategoryCardLink></li>)}</CategoryGridUl>}
   </section>;
 }

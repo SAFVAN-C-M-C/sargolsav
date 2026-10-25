@@ -13,10 +13,17 @@ export type AuthState =
   | { status: 'loading' | 'unauthenticated' | 'forbidden' | 'unavailable' }
   | { status: 'authorized'; identity: AdminIdentity };
 
+export type AdminRequestOptions = {
+  method: 'POST' | 'PATCH' | 'PUT';
+  body: unknown;
+} | { method: 'DELETE'; body?: never };
+
 export interface AuthContextValue {
   state: AuthState;
   login(email: string, password: string): Promise<void>;
   logout(): Promise<void>;
   retry(): void;
+  request(path: string, signal: AbortSignal, options?: AdminRequestOptions): Promise<unknown>;
+  readPublished(path: string, signal: AbortSignal): Promise<unknown>;
 }
 
