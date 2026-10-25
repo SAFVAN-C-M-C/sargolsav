@@ -276,3 +276,24 @@ main.dashboard-main { width: 100%; max-width: 80rem; padding: clamp(1rem, 3vw, 3
 .catalog-list-order { color: var(--muted); font-size: .8rem; }
 .catalog-list a { flex-wrap: wrap; justify-content: space-between; gap: .5rem 1rem; }
 .catalog-list a > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+
+.result-category, .result-editor { min-width: 0; margin-block: 1.5rem; }
+.result-category h3, .result-editor h3 { overflow-wrap: anywhere; }
+.result-category .participant-list a { justify-content: space-between; flex-wrap: wrap; gap: .6rem; }
+.result-entry-status { font-size: .8rem; color: var(--muted); }
+.draft-form { min-width: 0; }
+.draft-fields { min-width: 0; display: grid; gap: 1rem; margin: 0; padding: 0; border: 0; }
+.winner-entry { min-width: 0; display: grid; gap: .6rem; margin: 0; padding: clamp(.75rem, 3vw, 1.25rem); border: 1px solid var(--line); border-radius: .75rem; }
+.winner-entry legend { font-weight: 700; padding-inline: .4rem; }
+.winner-entry p, .winner-entry .notice { margin-block: .25rem; overflow-wrap: anywhere; }
+.winner-entry input, .winner-entry select { min-width: 0; width: 100%; }
+.winner-entry select { min-height: 48px; padding: .65rem; border: 1px solid #9caea5; border-radius: .5rem; color: var(--ink); background: var(--surface); font: inherit; }
+.winner-entry select:focus-visible { outline: 3px solid #a5680b; outline-offset: 3px; }
+.candidate-lookup { display: flex; flex-wrap: wrap; gap: .6rem; min-width: 0; }
+.candidate-lookup input { flex: 1 1 12rem; }
+.candidate-lookup button { flex: 1 1 auto; }
+.draft-save-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; position: sticky; bottom: 0; margin-top: 1rem; padding: .75rem; border: 1px solid var(--line); border-radius: .75rem; background: var(--surface); }
+.draft-save-bar > span { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+@media (min-width: 900px) { .draft-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 360px) { .draft-save-bar button { width: 100%; } }
+.winner-entry button { max-width: 100%; overflow-wrap: anywhere; }

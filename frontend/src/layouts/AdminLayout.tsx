@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, UNSAFE_DataRouterContext, useLocation, useSearchParams } from 'react-router-dom';
 import { loadCompetitions, type AdminCompetition } from '../api/adminDashboardApi';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { useAdminResource } from '../hooks/useAdminResource';
 import { DashboardError, DashboardLoading } from '../components/admin/DashboardStates';
 import { adminDestinations } from '../constants/adminNavigation';
+import { AdminNavigationBlocker } from '../components/admin/AdminNavigationBlocker';
 
 export function AdminLayout() {
   const { state: auth, logout, request } = useAdminAuth();
@@ -14,6 +15,7 @@ export function AdminLayout() {
   const load = useCallback((signal: AbortSignal) => loadCompetitions(request, signal), [request]);
   const { state, retry, update } = useAdminResource(load);
   const dirtyForms = useRef(new Set<string>());
+  const dataRouter = useContext(UNSAFE_DataRouterContext);
   const setDirty = useCallback((key: string, dirty: boolean) => {
     if (dirty) dirtyForms.current.add(key); else dirtyForms.current.delete(key);
   }, []);
@@ -26,7 +28,7 @@ export function AdminLayout() {
   }, []);
   const mayLeave = () => !dirtyForms.current.size || window.confirm('Discard unsaved changes? A request already sent may still complete.');
   const selectCompetition = (id: string) => {
-    if (id === (params.get('competition') ?? '') || !mayLeave()) return;
+    if (id === (params.get('competition') ?? '') || (!dataRouter && !mayLeave())) return;
     const next = new URLSearchParams(params);
     next.delete('unit'); next.delete('madrasa'); next.delete('participantForm');
     next.delete('category'); next.delete('event'); next.delete('catalogForm');
@@ -40,12 +42,14 @@ export function AdminLayout() {
   const competition = state.status === 'ready' ? state.data.find((item) => item.id === selectedId) : undefined;
   if (auth.status !== 'authorized') return null;
   return <div className="admin-workspace" onClickCapture={(event) => {
+    if (dataRouter) return;
     const link = event.target instanceof Element ? event.target.closest('a') : null;
     if (!link || link.getAttribute('href')?.startsWith('#') || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || link.target === '_blank') return;
     if (link.pathname + link.search + link.hash !== location.pathname + location.search + location.hash && !mayLeave()) {
       event.preventDefault(); event.stopPropagation();
     }
   }}>
+    {dataRouter && <AdminNavigationBlocker dirtyForms={dirtyForms} />}
     <a className="skip-link" href="#admin-content">Skip to admin content</a>
     <aside className="admin-sidebar">
       <Link className="admin-brand" to={{ pathname: '/admin', search: location.search }}>Sargolsav<span>ADMIN WORKSPACE</span></Link>
