@@ -32,6 +32,7 @@ export function AdminLayout() {
     const next = new URLSearchParams(params);
     next.delete('unit'); next.delete('madrasa'); next.delete('participantForm');
     next.delete('category'); next.delete('event'); next.delete('catalogForm');
+    next.delete('correction'); next.delete('resultView');
     if (id) next.set('competition', id); else next.delete('competition');
     setParams(next);
   };

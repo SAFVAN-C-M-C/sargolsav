@@ -297,3 +297,17 @@ main.dashboard-main { width: 100%; max-width: 80rem; padding: clamp(1rem, 3vw, 3
 @media (min-width: 900px) { .draft-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 360px) { .draft-save-bar button { width: 100%; } }
 .winner-entry button { max-width: 100%; overflow-wrap: anywhere; }
+
+.verification-winners { display: grid; gap: .75rem; list-style: none; padding: 0; }
+.verification-winners li { min-width: 0; padding: 1rem; border: 1px solid var(--line); border-radius: .75rem; overflow-wrap: anywhere; }
+.verification-winners dl { display: grid; gap: .6rem; }
+.verification-winners dt { color: var(--muted); font-size: .8rem; }
+.verification-winners dd { margin: .25rem 0 0; }
+.result-lifecycle, .correction-workspace { min-width: 0; overflow-wrap: anywhere; }
+.correction-workspace { margin-top: 1.5rem; padding: clamp(.75rem, 3vw, 1.5rem); border: 2px solid var(--accent); border-radius: var(--radius); }
+.publication-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: .5rem; background: #102b25cc; }
+.publication-dialog { width: min(100%, 42rem); min-width: 0; max-height: 95dvh; overflow-y: auto; padding: clamp(1rem, 3vw, 2rem); border-radius: 1rem; background: var(--surface); overflow-wrap: anywhere; }
+.publication-dialog h3 { font-size: 1.4rem; }
+.publication-dialog button { max-width: 100%; overflow-wrap: anywhere; }
+@media (min-width: 600px) { .verification-winners dl { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 360px) { .publication-dialog .actions button { width: 100%; } }
