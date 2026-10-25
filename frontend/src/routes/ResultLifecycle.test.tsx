@@ -48,12 +48,26 @@ function setup({ status = 'draft', entries = winners(), path = reviewUrl, existi
     if (path.endsWith('/settings')) return reply({ settings: { competition_id: comp, position_points: { '1': 5, '7': 0 } } });
     if (path.endsWith('/units')) return reply({ units: [{ id: '21', competition_id: comp, name: 'North Unit' }, { id: '22', competition_id: comp, name: 'South Unit' }] });
     if (path.endsWith('/madrasas')) return reply({ madrasas: path.includes('/21/') ? [{ id: '31', competition_id: comp, unit_id: '21', name: 'Central Madrassa' }] : [] });
-    if (path.includes('/candidates/lookup')) return reply({ error: 'Candidate not found' }, 404);
+    if (path.includes('/candidates/lookup')) {
+      const code = new URL(path, 'http://local').searchParams.get('candidate_code');
+      const existing = live.entries.find((entry) => entry.candidate_code === code);
+      return existing ? reply({ candidate: { id: existing.candidate_id, competition_id: '1', category_id: '11', candidate_code: code, name: existing.name, unit_id: existing.unit_id, madrasa_id: existing.madrasa_id } }) : reply({ error: 'Candidate not found' }, 404);
+    }
     if (path.startsWith('/api/competitions/') && path.endsWith('/result')) return published ? reply({ result: published }) : reply({ error: 'Published result not found' }, 404);
-    if (path.endsWith('/result-draft')) return live.status === 'draft' ? reply({ draft: live }) : reply({ error: 'Only draft results can be managed through this endpoint' }, 409);
+    const body = options.body ? JSON.parse(String(options.body)) : {};
+    const sharedSave = path.endsWith('/shared-positions');
+    const savedEntries = (entries: WinnerPayload[]): LifecycleEntry[] => entries.map((entry, index) => ({ ...entry, id: String(601 + index), candidate_id: live.entries.find((existing) => existing.candidate_code === entry.candidate_code)?.candidate_id ?? String(201 + index), unit_name: entry.unit_id === '21' ? 'North Unit' : 'South Unit', madrasa_name: entry.madrasa_id ? 'Central Madrassa' : null, override_audit_id: sharedSave && entries.filter((other) => other.position === entry.position).length > 1 ? '777' : null }));
+    if (path.endsWith('/result-draft') || path.endsWith('/result-draft/shared-positions')) {
+      if (live.status !== 'draft') return reply({ error: 'Only draft results can be managed through this endpoint' }, 409);
+      if (method === 'PUT') {
+        if (body.version !== live.version) return reply({ error: 'Draft changed; retrieve the latest version before saving' }, 409);
+        if (!sharedSave && (live.entries.some((entry) => entry.override_audit_id) || new Set(body.entries.map((entry: WinnerPayload) => entry.position)).size !== body.entries.length)) return reply({ error: 'Shared positions require explicit approval' }, 409);
+        live = { ...live, version: nextVersion(), entries: savedEntries(body.entries) };
+      }
+      return reply({ draft: live });
+    }
     const root = '/api/admin/competitions/1/categories/11/events/111/result';
     if (path === root && method === 'GET') return reply({ result: { ...live, active_correction_id: active() } });
-    const body = options.body ? JSON.parse(String(options.body)) : {};
     if (path === `${root}/corrections` && method === 'POST') {
       if (body.version !== live.version || active()) return reply({ error: active() ? 'An active correction already exists' : 'Result changed; retrieve the latest version before retrying' }, 409);
       correction = correctionRecord(body.reason); return reply({ correction }, 201);
@@ -64,7 +78,8 @@ function setup({ status = 'draft', entries = winners(), path = reviewUrl, existi
     if (isCorrection && method === 'GET') return reply({ correction });
     if (method === 'PUT' && isCorrection) {
       if (body.version !== row.version || row.status !== 'draft') return reply({ error: 'Result changed; retrieve the latest version before retrying' }, 409);
-      correction = { ...correction!, version: nextVersion(), entries: body.entries.map((entry: WinnerPayload, index: number) => ({ ...entry, id: String(601 + index), candidate_id: String(201 + index), unit_name: entry.unit_id === '21' ? 'North Unit' : 'South Unit', madrasa_name: entry.madrasa_id ? 'Central Madrassa' : null, override_audit_id: null })) };
+      if (!sharedSave && (row.entries.some((entry) => entry.override_audit_id) || new Set(body.entries.map((entry: WinnerPayload) => entry.position)).size !== body.entries.length)) return reply({ error: 'Shared positions require explicit approval' }, 409);
+      correction = { ...correction!, version: nextVersion(), entries: savedEntries(body.entries) };
       return reply({ correction });
     }
     const action = path.split('/').at(-1);
@@ -262,4 +277,165 @@ test('late publication responses cannot overwrite a newly selected competition',
   // Programmatic navigation is still guarded while a modal/write is active.
   await act(async () => { await routers.at(-1)!.navigate('/admin/results?competition=2'); }); await screen.findByText('No events in this category.');
   await act(async () => release()); expect(screen.queryByText('Result published.')).toBeNull(); expect(screen.getByTestId('location').textContent).toBe('/admin/results?competition=2');
+});
+
+const tieReason = 'Judges confirmed equal marks on the signed sheet';
+const tiedWinners = (): LifecycleEntry[] => [
+  { ...winners()[0], override_audit_id: '700' },
+  { ...winners()[1], position: 1, override_audit_id: '700' },
+  { ...winners()[1], id: '503', candidate_id: '103', candidate_code: '003', name: 'Third winner', position: 7 },
+];
+async function enableOverride(context: ReturnType<typeof setup>, reason = tieReason) {
+  await context.user.click(await screen.findByRole('checkbox', { name: 'Allow Shared Positions' }));
+  if (reason) await context.user.type(screen.getByLabelText('Shared-position override reason'), reason);
+}
+async function addSharedWinner(context: ReturnType<typeof setup>, code = '0009') {
+  await context.user.click(screen.getByRole('button', { name: 'Add winner' }));
+  const groups = screen.getAllByRole('group', { name: /^Winner \d/ }); const row = within(groups.at(-1)!);
+  await context.user.type(row.getByLabelText('External candidate ID'), code);
+  await context.user.click(row.getByRole('button', { name: 'Look up candidate' }));
+  await row.findByText(/New candidate/); await context.user.type(row.getByLabelText('Candidate name'), 'Additional shared winner');
+  await context.user.selectOptions(row.getByLabelText('Unit'), '22'); await context.user.selectOptions(row.getByLabelText('Winning position'), '1');
+  return row;
+}
+async function openOverride(context: ReturnType<typeof setup>) {
+  await context.user.click(screen.getByRole('button', { name: 'Save shared-position override' }));
+  return within(await screen.findByRole('dialog', { name: 'Confirm shared-position override' }));
+}
+
+test('sharing stays off by default, normal duplicates fail and opt-in allows extra winner rows', async () => {
+  const context = setup({ path: detail }); const checkbox = await screen.findByRole('checkbox', { name: 'Allow Shared Positions' });
+  expect((checkbox as HTMLInputElement).checked).toBe(false); expect(screen.getByRole('button', { name: 'Add winner' }).matches(':disabled')).toBe(true);
+  await context.user.selectOptions(screen.getAllByLabelText('Winning position')[1], '1'); await context.user.click(screen.getByRole('button', { name: 'Save draft' }));
+  expect((await screen.findByRole('alert')).textContent).toContain('Duplicate positions'); expect(context.writes()).toHaveLength(0);
+  await enableOverride(context, ''); expect(screen.getByRole('button', { name: 'Add winner' }).matches(':disabled')).toBe(false);
+  await context.user.click(screen.getByRole('button', { name: 'Save shared-position override' })); expect(screen.getByRole('alert').textContent).toContain('Override reason'); expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+test('override confirmation shows exact groups, cancels with keyboard and retains all input', async () => {
+  const context = setup({ path: detail }); await enableOverride(context); await context.user.selectOptions(screen.getAllByLabelText('Winning position')[1], '1');
+  const dialog = await openOverride(context); expect(dialog.getByText('Shared position 1')).toBeTruthy(); expect(dialog.getByText('001')).toBeTruthy(); expect(dialog.getByText(tieReason)).toBeTruthy();
+  expect(document.activeElement).toBe(dialog.getByRole('button', { name: 'Cancel override' })); await context.user.tab({ shift: true }); expect(document.activeElement).toBe(dialog.getByRole('button', { name: 'Confirm override' }));
+  await context.user.tab(); expect(document.activeElement).toBe(dialog.getByRole('button', { name: 'Cancel override' })); await context.user.keyboard('{Escape}');
+  expect(screen.queryByRole('dialog')).toBeNull(); expect(context.writes()).toHaveLength(0); expect((screen.getByLabelText('Shared-position override reason') as HTMLTextAreaElement).value).toBe(tieReason);
+  expect((screen.getAllByLabelText('Winning position')[1] as HTMLSelectElement).value).toBe('1');
+  await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Cancel override' })); expect(context.writes()).toHaveLength(0);
+});
+
+test('explicit draft save echoes exact token, whole entries and reason, then clears opt-in without enabling it persistently', async () => {
+  const context = setup({ path: detail }); const version = context.live().version;
+  await enableOverride(context); await context.user.selectOptions(screen.getAllByLabelText('Winning position')[1], '1'); await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Confirm override' }));
+  await screen.findByText(/Shared-position changes saved privately/); const [path, options] = context.writes()[0];
+  expect(path).toMatch(/\/result-draft\/shared-positions$/); expect(JSON.parse(String(options.body))).toEqual({ version, shared_positions: true, reason: tieReason, entries: winners().map((entry) => ({ candidate_code: entry.candidate_code, name: entry.name, unit_id: entry.unit_id, madrasa_id: entry.madrasa_id, position: 1 })) });
+  expect(new Headers(options.headers).get('Authorization')).toBe('Bearer opaque'); expect(context.live().entries.every((entry) => entry.override_audit_id !== null)).toBe(true);
+  expect((screen.getByRole('checkbox', { name: 'Allow Shared Positions' }) as HTMLInputElement).checked).toBe(false); expect(screen.queryByLabelText('Shared-position override reason')).toBeNull();
+  await context.user.click(screen.getByRole('button', { name: 'Save draft' })); expect(screen.getByRole('alert').textContent).toMatch(/Duplicate positions|fresh reason/); expect(context.writes()).toHaveLength(1);
+  await context.user.click(screen.getByRole('link', { name: 'Review saved result' })); await screen.findByText('Missing required positions: 7.'); expect(screen.getByRole('button', { name: 'Review result' }).matches(':disabled')).toBe(true);
+});
+
+test.each(['draft', 'correction'])('existing %s overrides can remove ties explicitly and then use ordinary saving', async (kind) => {
+  const correction = kind === 'correction';
+  const context = setup({ status: correction ? 'published' : 'draft', entries: tiedWinners(), existingCorrection: correction ? 'draft' : undefined, path: correction ? `${detail}&correction=200&resultView=correction` : detail });
+  await screen.findByRole('checkbox', { name: 'Allow Shared Positions' }); const oldPublic = context.published();
+  await context.user.click(screen.getByRole('button', { name: 'Remove winner 2' }));
+  await context.user.click(screen.getByRole('button', { name: correction ? 'Save correction' : 'Save draft' })); expect(screen.getByRole('alert').textContent).toContain('fresh reason'); expect(context.writes()).toHaveLength(0);
+  await enableOverride(context, 'Signed sheet removes the shared winner'); const dialog = await openOverride(context); expect(dialog.getByText(/removes the existing shared-position approval/)).toBeTruthy();
+  await context.user.click(dialog.getByRole('button', { name: 'Confirm override' })); await screen.findByText(/Shared-position changes saved privately/);
+  expect(context.writes()[0][0]).toMatch(correction ? /\/result\/corrections\/200\/shared-positions$/ : /\/result-draft\/shared-positions$/);
+  const entries = correction ? context.correction()!.entries : context.live().entries; expect(entries.every((entry) => entry.override_audit_id === null)).toBe(true);
+  await context.user.click(screen.getByRole('button', { name: correction ? 'Save correction' : 'Save draft' })); await screen.findByText(correction ? 'Correction saved privately.' : 'Draft saved.');
+  expect(context.writes()[1][0]).toMatch(correction ? /\/corrections\/200$/ : /\/result-draft$/); expect(JSON.parse(String(context.writes()[1][1].body))).not.toHaveProperty('shared_positions'); expect(context.published()).toEqual(oldPublic);
+});
+
+test('a shared save cannot be requested for an ordinary unique set', async () => {
+  const context = setup({ path: detail }); await enableOverride(context); await context.user.click(screen.getByRole('button', { name: 'Save shared-position override' }));
+  expect(screen.getByRole('alert').textContent).toContain('No shared positions or existing override'); expect(screen.queryByRole('dialog')).toBeNull(); expect(context.writes()).toHaveLength(0);
+});
+
+test('duplicate candidates stay blocked with sharing enabled and exact registered candidate lookup is reused', async () => {
+  const context = setup({ path: detail }); await enableOverride(context); await context.user.click(screen.getByRole('button', { name: 'Add winner' }));
+  const row = within(screen.getByRole('group', { name: 'Winner 3' })); await context.user.type(row.getByLabelText('External candidate ID'), '001'); await context.user.click(row.getByRole('button', { name: 'Look up candidate' }));
+  await row.findByText(/Existing candidate/); expect((row.getByLabelText('Candidate name') as HTMLInputElement).value).toBe('First winner'); expect((row.getByLabelText('Candidate name') as HTMLInputElement).readOnly).toBe(true);
+  await context.user.click(screen.getByRole('button', { name: 'Save shared-position override' })); expect(screen.getByRole('alert').textContent).toContain('Duplicate candidate IDs'); expect(context.writes()).toHaveLength(0);
+});
+
+test.each([400, 409, 503, 'network'] as const)('failed override %s preserves winners/reason and never falls back to ordinary saving', async (status) => {
+  const context = setup({ status: 'published', existingCorrection: 'draft', path: `${detail}&correction=200&resultView=correction`, override: async (path, options) => {
+    if (!path.endsWith('/shared-positions') || options.method !== 'PUT') return undefined;
+    if (status === 'network') throw new Error('Private transport detail');
+    return reply({ error: status === 409 ? 'Result changed; retrieve the latest version before retrying' : 'Override could not be saved' }, status);
+  } });
+  const original = context.correction(); const published = context.published(); await enableOverride(context); await addSharedWinner(context); await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Confirm override' }));
+  await within(screen.getByRole('dialog')).findByRole('alert'); expect(context.correction()).toEqual(original); expect(context.published()).toEqual(published); expect(context.writes()).toHaveLength(1);
+  expect(document.body.textContent).not.toContain('Private transport detail');
+  if (status === 409) expect(screen.getByRole('button', { name: 'Confirm override' }).matches(':disabled')).toBe(true);
+  await context.user.click(screen.getByRole('button', { name: 'Cancel override' })); expect((screen.getByLabelText('Shared-position override reason') as HTMLTextAreaElement).value).toBe(tieReason); expect(screen.getByDisplayValue('0009')).toBeTruthy();
+  if (status === 409) {
+    vi.spyOn(window, 'confirm').mockReturnValue(false); await context.user.click(screen.getByRole('button', { name: 'Reload correction' })); expect(screen.getByDisplayValue('0009')).toBeTruthy();
+    vi.mocked(window.confirm).mockReturnValue(true); await context.user.click(screen.getByRole('button', { name: 'Reload correction' })); await screen.findByRole('checkbox', { name: 'Allow Shared Positions' }); expect(screen.queryByDisplayValue('0009')).toBeNull();
+  }
+});
+
+test('shared override pending writes prevent duplicate submissions and do not claim early success', async () => {
+  let release!: () => void;
+  const context = setup({ path: detail, override: async (path, options) => path.endsWith('/shared-positions') && options.method === 'PUT' ? new Promise((resolve) => { release = () => resolve(undefined); }) : undefined });
+  await enableOverride(context); await addSharedWinner(context); await openOverride(context); await context.user.dblClick(screen.getByRole('button', { name: 'Confirm override' }));
+  await waitFor(() => expect(context.writes()).toHaveLength(1)); expect(screen.queryByText(/Shared-position changes saved privately/)).toBeNull(); expect(screen.getByRole('button', { name: 'Cancel override' }).matches(':disabled')).toBe(true);
+  await context.user.keyboard('{Escape}{Tab}'); expect(screen.getByRole('dialog')).toBeTruthy(); expect(document.activeElement).toBe(screen.getByRole('dialog'));
+  await act(async () => release()); await screen.findByText(/Shared-position changes saved privately/); expect(context.live().entries).toHaveLength(3);
+});
+
+test('override option/reason and confirmation retain navigation and unload safeguards', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false); const context = setup({ path: detail }); await enableOverride(context); await addSharedWinner(context); await openOverride(context);
+  const unload = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(unload); expect(unload.defaultPrevented).toBe(true);
+  await act(async () => { await routers.at(-1)!.navigate(-1); }); expect(confirm).toHaveBeenCalled(); expect(screen.getByRole('dialog')).toBeTruthy(); expect(context.writes()).toHaveLength(0);
+  await context.user.click(screen.getByRole('button', { name: 'Cancel override' })); await context.user.click(screen.getByRole('link', { name: 'Review saved result' })); expect(screen.getByDisplayValue(tieReason)).toBeTruthy();
+});
+
+test.each([401, 403])('shared-position API authorization %s removes protected forms', async (status) => {
+  const context = setup({ path: detail, override: async (path, options) => path.endsWith('/shared-positions') && options.method === 'PUT' ? reply({}, status) : undefined });
+  await enableOverride(context); await addSharedWinner(context); await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Confirm override' }));
+  await screen.findByRole('heading', { name: status === 401 ? 'Sign in' : 'Access denied' }); expect(screen.queryByRole('dialog')).toBeNull(); expect(screen.queryByRole('checkbox', { name: 'Allow Shared Positions' })).toBeNull();
+});
+
+test('ordinary publication followed by a shared correction preserves the public snapshot until confirmed replacement', async () => {
+  const context = setup({ path: detail }); await context.user.click(await screen.findByRole('button', { name: 'Save draft' })); await screen.findByText('Draft saved.');
+  await context.user.click(screen.getByRole('link', { name: 'Review saved result' })); await context.user.click(await screen.findByRole('button', { name: 'Review result' })); await screen.findByText('Result reviewed.');
+  await context.user.click(screen.getByRole('button', { name: 'Publish result' })); await context.user.click(screen.getByRole('button', { name: 'Confirm publication' })); await screen.findByRole('region', { name: 'Current public result' }); const previous = context.published();
+  await context.user.type(screen.getByLabelText('Correction reason'), 'Reconcile signed winner sheet'); await context.user.click(screen.getByRole('button', { name: 'Start correction' }));
+  await enableOverride(context); await addSharedWinner(context); const version = context.correction()!.version; await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Confirm override' })); await screen.findByText(/Shared-position changes saved privately/);
+  const sharedWrite = context.writes().find(([path]) => String(path).endsWith('/shared-positions'))!; expect(sharedWrite[0]).toMatch(/\/corrections\/200\/shared-positions$/); expect(JSON.parse(String(sharedWrite[1].body)).version).toBe(version); expect(context.published()).toEqual(previous);
+  await context.user.click(screen.getByRole('link', { name: 'Review saved correction' })); expect(await screen.findByText('Shared position 1')).toBeTruthy(); await context.user.click(screen.getByRole('button', { name: 'Review correction' })); await screen.findByText('Correction reviewed.'); expect(context.published()).toEqual(previous);
+  await context.user.click(screen.getByRole('button', { name: 'Publish correction' })); expect(within(screen.getByRole('dialog')).getByText('Shared position 1')).toBeTruthy(); await context.user.click(screen.getByRole('button', { name: 'Confirm publication' }));
+  await waitFor(() => expect(within(screen.getByRole('region', { name: 'Current public result' })).getByText('Position 1: Additional shared winner')).toBeTruthy());
+  expect(context.published()!.winners.map((winner) => winner.position)).toEqual([1, 7, 1]); expect(context.history).toHaveLength(2); expect(context.history[0]).toEqual(previous);
+  expect(JSON.stringify(context.published())).not.toMatch(/reason|override|audit|reviewed_by/); expect(context.writes().some(([path]) => String(path).includes('/candidates'))).toBe(false);
+});
+
+test('unchanged inherited published ties can review without new override while edits remain explicit', async () => {
+  const context = setup({ status: 'published', entries: tiedWinners(), existingCorrection: 'draft', path: `${detail}&correction=200&resultView=correction` });
+  expect((await screen.findByRole('checkbox', { name: 'Allow Shared Positions' }) as HTMLInputElement).checked).toBe(false);
+  await context.user.click(screen.getByRole('link', { name: 'Review saved correction' })); await context.user.click(await screen.findByRole('button', { name: 'Review correction' })); await screen.findByText('Correction reviewed.');
+  expect(context.writes()).toHaveLength(1); expect(context.writes()[0][0]).toMatch(/\/corrections\/200\/review$/); expect(context.published()!.winners).toHaveLength(3);
+});
+
+test.each(['draft', 'correction'])('adding and removing a member of an existing %s tie require fresh explicit approvals', async (kind) => {
+  const correction = kind === 'correction';
+  const context = setup({ status: correction ? 'published' : 'draft', entries: tiedWinners(), existingCorrection: correction ? 'draft' : undefined, path: correction ? `${detail}&correction=200&resultView=correction` : detail });
+  await enableOverride(context); await addSharedWinner(context); const oldVersion = correction ? context.correction()!.version : context.live().version;
+  await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Confirm override' })); await screen.findByText(/Shared-position changes saved privately/);
+  expect(JSON.parse(String(context.writes()[0][1].body)).version).toBe(oldVersion);
+  expect((correction ? context.correction()!.entries : context.live().entries).filter((entry) => entry.position === 1)).toHaveLength(3);
+  await context.user.click(screen.getByRole('button', { name: 'Remove winner 4' })); await enableOverride(context, 'Signed sheet removes the additional shared winner');
+  await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Confirm override' })); await screen.findByText(/Shared-position changes saved privately/);
+  expect(context.writes()).toHaveLength(2); expect(context.writes().every(([path]) => String(path).endsWith('/shared-positions'))).toBe(true);
+  const body = JSON.parse(String(context.writes()[1][1].body)); expect(body.version).not.toBe(oldVersion); expect(body.reason).toContain('removes'); expect(body.entries.filter((entry: WinnerPayload) => entry.position === 1)).toHaveLength(2);
+});
+
+test('a delayed shared save cannot show success or private winners in another competition', async () => {
+  vi.spyOn(window, 'confirm').mockReturnValue(true); let release!: () => void;
+  const context = setup({ path: detail, override: async (path, options) => path.endsWith('/shared-positions') && options.method === 'PUT' ? new Promise((resolve) => { release = () => resolve(undefined); }) : undefined });
+  await enableOverride(context); await addSharedWinner(context); await openOverride(context); await context.user.click(screen.getByRole('button', { name: 'Confirm override' })); await waitFor(() => expect(context.writes()).toHaveLength(1));
+  await act(async () => { await routers.at(-1)!.navigate('/admin/results?competition=2'); }); await screen.findByText('No events in this category.'); await act(async () => release());
+  expect(screen.queryByText(/Shared-position changes saved privately/)).toBeNull(); expect(screen.queryByDisplayValue('0009')).toBeNull(); expect(screen.getByTestId('location').textContent).toBe('/admin/results?competition=2');
 });

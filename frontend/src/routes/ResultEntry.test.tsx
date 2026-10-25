@@ -179,7 +179,9 @@ test.each(['Reviewed', 'Published'])('%s events show protection without requesti
 });
 
 test('shared-position drafts are protected from ordinary saving', async () => {
-  setup({ draft: savedDraft([{ ...savedEntry(), override_audit_id: '9' }]) }); await screen.findByRole('heading', { name: 'Shared-position draft protected' }); expect(screen.queryByRole('button', { name: 'Save draft' })).toBeNull();
+  const context = setup({ draft: savedDraft([{ ...savedEntry(), override_audit_id: '9' }]) });
+  await context.user.click(await screen.findByRole('button', { name: 'Save draft' }));
+  expect((await screen.findByRole('alert')).textContent).toContain('fresh reason'); expect(context.writes()).toHaveLength(0);
 });
 
 test('saving uses a submission latch and claims success only after the server responds', async () => {

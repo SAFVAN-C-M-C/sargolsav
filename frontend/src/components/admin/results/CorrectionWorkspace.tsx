@@ -36,7 +36,6 @@ export function CorrectionWorkspace({ scope, correctionId, resultId, eventName, 
     if (action === 'publish') { notify('Correction published.'); onApplied(); }
     else if (action) notify(action === 'review' ? 'Correction reviewed.' : 'Correction returned to draft.');
   };
-  const shared = correction.entries.some((entry) => entry.override_audit_id !== null) || new Set(correction.entries.map((entry) => entry.position)).size !== correction.entries.length;
   const reviewing = state.data.reviewMode || correction.status !== 'draft';
   return <section className="correction-workspace" aria-label="Private correction workspace"><h4>Private correction · {correction.status}</h4>
     <p>Reason: {correction.reason}</p><p>Based on publication <bdi>{correction.base_publication_id}</bdi>. Public winners remain unchanged until correction publication succeeds.</p>
@@ -45,7 +44,7 @@ export function CorrectionWorkspace({ scope, correctionId, resultId, eventName, 
       {correction.status === 'draft' && <Link className="participant-action-link" to={{ pathname: '/admin/results', search: participantSearch(params, { resultView: reviewing ? 'correction' : 'correction-review' }) }}>{reviewing ? 'Edit correction' : 'Review saved correction'}</Link>}
     </nav>
     {correction.status === 'applied' && <p role="status">Correction applied. This workspace is read-only; a new correction must start from the current published result.</p>}
-    {!reviewing && shared ? <p role="alert">Shared-position correction editing is unavailable here. Existing approvals can only be validated by the backend during review.</p> : !reviewing ?
+    {!reviewing ?
       <DraftEditor initial={{ ...correction, status: 'draft' }} scope={scope} categoryName={categoryName} units={units} positions={positions} correctionId={correction.id}
         onCorrectionConfirmed={(value) => confirm(value)} onConfirmed={() => {}} reload={retry} /> :
       <LifecycleActions record={correction} positions={positions} eventName={eventName} categoryName={categoryName} correction

@@ -27,6 +27,5 @@ export function DraftManager({ scope, categoryName, onConfirmed }: { scope: Resu
   if (read.kind === 'absent') return <div className="dashboard-panel"><h4>No draft yet</h4><p>Initialize an empty private draft before entering winners. This does not publish results.</p><button type="button" disabled={mutation.pending} onClick={async () => {
     const result = await mutation.run((signal) => resultsApi.initialize(request, scope, signal)); if (result) { clean(); accept(result.data); }
   }}>{mutation.pending ? 'Initializing…' : 'Initialize draft'}</button>{mutation.error && <><p role="alert" className="form-error">{mutation.error}</p><button type="button" disabled={mutation.pending} onClick={retry}>Reload draft</button></>}</div>;
-  if (read.draft.entries.some((entry) => entry.override_audit_id !== null) || new Set(read.draft.entries.map((entry) => entry.position)).size !== read.draft.entries.length) return <div className="dashboard-panel" role="alert"><h4>Shared-position draft protected</h4><p>This draft cannot be edited through ordinary entry. Shared-position editing belongs to a later workflow.</p></div>;
   return <DraftEditor initial={read.draft} scope={scope} categoryName={categoryName} units={units} positions={positions} onConfirmed={accept} reload={retry} />;
 }
