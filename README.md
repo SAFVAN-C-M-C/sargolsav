@@ -29,6 +29,10 @@ TKT-09F adds result review, confirmed publication and separate private correctio
 workspaces. See the [result lifecycle guide](frontend/RESULT_LIFECYCLE.md) for routes,
 API contracts, concurrency safeguards, verification and remaining limitations.
 
+TKT-09G adds explicitly confirmed shared-position overrides for private drafts and
+corrections, including audited removal of ties. See the [shared-position UI guide](frontend/SHARED_POSITIONS.md)
+for validation, operation selection and complete workflow verification.
+
 TKT-08D adds visibility-aware public polling, retained-data background retries,
 and focused mobile improvements. See the [live-update guide](docs/TKT-08D-public-live-updates.md)
 for timing, request optimization, error behavior and manual checks.
@@ -251,8 +255,8 @@ errors show a retryable unavailable state. The admin dashboard offers competitio
 selection, overview counts, competition creation/editing, lifecycle actions and
 shared points configuration, unit/optional Madrassa management, and category/event
 management. Results support private draft entry, candidate resolution, review,
-confirmed publication and private corrections. Shared-position override management
-is not available in the UI.
+confirmed publication, private corrections and explicitly confirmed, reasoned
+shared-position overrides using the existing admin authorization.
 The public `/` page stays accessible
 without Firebase configuration.
 

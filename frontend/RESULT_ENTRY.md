@@ -2,6 +2,8 @@
 
 TKT-09F extends these components with [review, publication and private corrections](RESULT_LIFECYCLE.md).
 The ordinary draft endpoint restrictions below remain in force.
+TKT-09G adds [explicit shared-position editing and removal](SHARED_POSITIONS.md)
+through separate audited endpoints; ordinary saves still reject duplicate positions.
 
 ## Screens and routes
 
@@ -28,7 +30,8 @@ create records. The explicit POST initializes an empty draft or retrieves the
 existing draft unchanged, including if another admin initialized it first. Reviewed
 or published status rows now open the lifecycle workspace without calling ordinary draft endpoints.
 A raced 409 from draft GET also locks entry. Drafts with override entries/shared
-positions are protected instead of offering ordinary editing.
+positions require explicit opt-in, a fresh reason and confirmation through the
+shared-position endpoint for every edit or removal.
 
 ## Candidate lookup and winner entry
 
@@ -108,7 +111,8 @@ Validation, identity conflicts and network failures preserve entries. A stale
 version, non-draft or shared-position 409 prevents blind resubmission. **Reload
 draft** deliberately fetches the latest snapshot/options and confirms before
 throwing away dirty entries. There is no automatic fetch-new-version-and-overwrite,
-force-save or shared-position override workflow. Review, publication and correction
+force-save. Shared-position overrides now use the separate TKT-09G workflow.
+Review, publication and correction
 actions use the separate lifecycle APIs documented in the TKT-09F guide.
 A concurrent lifecycle transition remains protected by the backend even if status
 metadata was stale. Ambiguous network writes are not automatically repeated; reload

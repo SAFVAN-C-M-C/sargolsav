@@ -1,5 +1,8 @@
 # Admin result review, publication and corrections (TKT-09F)
 
+TKT-09G adds [shared-position editing and removal](SHARED_POSITIONS.md) to these
+workspaces. The TKT-09F verification results below describe its original delivery.
+
 ## Screens and routes
 
 All screens remain under the Firebase-admin-protected `/admin/results` route.
@@ -56,7 +59,8 @@ The original public winners stay visible throughout private edits and review.
 Only successful correction publication atomically replaces the public snapshot;
 previous publication/audit history is preserved by the existing backend. Applied
 workspaces are read-only. Leaving a correction does not cancel it: no cancellation
-endpoint exists. No direct published-entry writes or override-management UI exist.
+endpoint exists. No direct published-entry writes exist. Overrides use the explicit
+TKT-09G editor workflow, never an ordinary save of approved entries.
 
 ## API dependencies
 
@@ -90,7 +94,7 @@ External candidate codes stay strings, retaining leading zeros, case and spaces.
 The reused editor checks required identity/affiliation fields, registered candidates,
 duplicate exact codes and ordinary duplicate positions. Review requires every
 configured position. Existing audited shared entries can be verified by the backend,
-but their ordinary editing is blocked; approval/override controls belong to TKT-09G.
+but ordinary saving is blocked; TKT-09G adds fresh explicit approval for edits/removal.
 
 Opaque version tokens are echoed verbatim, never derived from dates. Main-result
 and correction versions remain separate. Mutation latches and disabled controls
@@ -172,5 +176,5 @@ backend API or dependency was added/changed by TKT-09F.
    overflow, touch targets, visible focus, dialog scrolling and keyboard access.
    Check existing public results/leaderboards and all other admin routes.
 
-No shared-position override UI, scoring/leaderboard changes, reset/export, correction
-cancellation or unrelated management features were implemented.
+TKT-09F introduced no scoring/leaderboard changes, reset/export, correction
+cancellation or unrelated management features. Shared-position UI was added subsequently in TKT-09G.

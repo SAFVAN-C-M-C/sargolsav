@@ -14,6 +14,8 @@ See [Result draft entry](RESULT_ENTRY.md) for exact candidate lookup, versioned
 drafts, production navigation blocking, API integration and manual verification.
 See [Result review, publication and corrections](RESULT_LIFECYCLE.md) for lifecycle
 screens, frozen public winners, private correction workspaces and conflict handling.
+See [Shared-position overrides](SHARED_POSITIONS.md) for exceptional tie entry,
+audited editing/removal, validation and end-to-end workflow verification.
 
 ```text
 src/
