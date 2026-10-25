@@ -1,11 +1,17 @@
 # Admin dashboard foundation (TKT-09A)
 
+TKT-09B now implements competition management and shared points settings. See
+[Competition management and settings](COMPETITION_MANAGEMENT.md) for mutations,
+validation, unsaved-change behavior and current verification. This guide documents
+the original dashboard foundation and its read-only overview dependencies.
+
 ## Routes and selection
 
 - `/admin`: read-only dashboard and competition overview.
-- `/admin/competitions`, `/admin/units`, `/admin/categories`, `/admin/results`,
-  `/admin/settings`: explicit future-feature placeholders. They do not offer forms
-  or invoke mutations. Unknown admin paths show an admin page-not-found placeholder.
+- `/admin/competitions`, `/admin/settings`: competition management and shared points
+  configuration, implemented in TKT-09B.
+- `/admin/units`, `/admin/categories`, `/admin/results`: future-feature placeholders.
+  Unknown admin paths show an admin page-not-found placeholder.
 - `/admin/login`: existing Firebase sign-in flow.
 - All workspace routes accept `?competition=<decimal-string-id>`. Selection is
   explicit, preserved by navigation, browser history, deep links and reloads.

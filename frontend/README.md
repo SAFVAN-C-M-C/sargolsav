@@ -4,6 +4,8 @@ The React frontend groups files by responsibility, with related UI grouped by fe
 
 See [Admin dashboard foundation](ADMIN_DASHBOARD.md) for protected routes, selected
 competition context, component structure, API dependencies and manual checks.
+See [Competition management and settings](COMPETITION_MANAGEMENT.md) for creation,
+editing, lifecycle transitions, shared points forms, validation and verification.
 
 ```text
 src/

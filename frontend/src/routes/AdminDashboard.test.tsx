@@ -29,6 +29,8 @@ function setup(path = '/admin', override?: (path: string, options?: RequestInit)
     if (path === '/api/admin/me') return response({ uid: 'admin', email: 'admin@example.test', emailVerified: true, admin: true });
     if (override) return override(path, options);
     if (path === '/api/admin/competitions') return response({ competitions });
+    if (path.endsWith('/settings')) return response({ settings: null });
+    if (/\/competitions\/[0-9]+$/.test(path)) return response({ competition: competitions.find((item) => path.endsWith(`/${item.id}`)) });
     if (path.endsWith('/units')) return response({ units: [{ id: '11', name: 'Unit' }] });
     if (path.endsWith('/categories')) return response({ categories: [{ id: '12', name: 'Category' }] });
     if (path.endsWith('/madrasas')) return response({ madrasas: [{ id: '13', name: 'Madrassa' }, { id: '14', name: 'Madrassa 2' }] });
@@ -71,12 +73,18 @@ test('deep links, placeholders, mobile navigation and browser history retain sel
   await screen.findByRole('heading', { name: competitions[2].name });
   await user.click(screen.getByRole('button', { name: 'Menu' }));
   expect(screen.getByRole('button', { name: 'Menu' }).getAttribute('aria-expanded')).toBe('true');
-  for (const label of ['Competitions', 'Units & Madrassas', 'Categories & Events', 'Results', 'Settings']) {
+  for (const label of ['Units & Madrassas', 'Categories & Events', 'Results']) {
     await user.click(screen.getByRole('link', { name: label }));
     await screen.findByRole('heading', { name: label });
     expect(screen.getByText('Coming later')).toBeTruthy();
     expect(screen.getByText(competitions[2].name)).toBeTruthy();
     expect(screen.getByTestId('location').textContent).toContain('?competition=3');
+  }
+  for (const label of ['Competitions', 'Settings']) {
+    await user.click(screen.getByRole('link', { name: label }));
+    await screen.findByRole('heading', { name: label });
+    expect(screen.queryByText('Coming later')).toBeNull();
+    expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('3');
   }
   await user.click(screen.getByRole('link', { name: 'Dashboard' }));
   await screen.findByRole('heading', { name: competitions[2].name });
