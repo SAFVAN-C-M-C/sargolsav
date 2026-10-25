@@ -167,8 +167,16 @@ export function AuthProvider({ children, client = firebaseAuthClient, fetcher = 
     }
   }, [client, fetcher, state.status]);
 
+  const readPublished = useCallback(async (path: string, signal: AbortSignal): Promise<unknown> => {
+    // Read only the existing public frozen projection; never send a Firebase token here.
+    if (!/^\/api\/competitions\/[1-9][0-9]*\/categories\/[1-9][0-9]*\/events\/[1-9][0-9]*\/result$/.test(path)) throw new Error('Invalid published result path');
+    const response = await fetcher(path, { headers: { Accept: 'application/json' }, cache: 'no-store', signal });
+    if (!response.ok) throw new AdminApiError(response.status, 'The current public result could not be loaded.');
+    return response.json();
+  }, [fetcher]);
+
   return (
-    <AuthContext.Provider value={{ state, login, logout, retry, request }}>
+    <AuthContext.Provider value={{ state, login, logout, retry, request, readPublished }}>
       {children}
     </AuthContext.Provider>
   );

@@ -24,5 +24,6 @@ export interface AuthContextValue {
   logout(): Promise<void>;
   retry(): void;
   request(path: string, signal: AbortSignal, options?: AdminRequestOptions): Promise<unknown>;
+  readPublished(path: string, signal: AbortSignal): Promise<unknown>;
 }
 

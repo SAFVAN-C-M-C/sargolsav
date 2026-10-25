@@ -1,6 +1,7 @@
 export interface ResultStatus {
   event_id: string; category_id: string; event_name: string;
   event_result_id: string | null; status: 'not_started' | 'draft' | 'reviewed' | 'published'; updated_at: string | null;
+  active_correction_id?: string | null;
 }
 export interface Candidate {
   id: string; competition_id: string; category_id: string; candidate_code: string;
